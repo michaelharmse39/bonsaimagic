@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { label: 'Collection', href: '/shop' },
   { label: 'Beginners', href: '/shop?category=beginners' },
   { label: 'Premium', href: '/shop?category=premium' },
+  { label: 'Track Order', href: '/track' },
 ]
 
 export default function Navbar() {
