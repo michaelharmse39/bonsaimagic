@@ -3,59 +3,91 @@ import Link from 'next/link'
 import { ShoppingCart, Menu, X } from 'lucide-react'
 import { useCart } from '@/store/cart'
 import { useState } from 'react'
+import { buttonVariants } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { cn } from '@/lib/utils'
+
+const NAV_LINKS = [
+  { label: 'Collection', href: '/shop' },
+  { label: 'Beginners', href: '/shop?category=beginners' },
+  { label: 'Premium', href: '/shop?category=premium' },
+]
 
 export default function Navbar() {
   const { itemCount, openCart } = useCart()
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-stone-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/60">
+      <div className="max-w-7xl mx-auto px-6 lg:px-10">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl font-[family-name:var(--font-playfair)] font-bold text-green-800">
-              Bonsai Magic
+
+          {/* Logo */}
+          <Link href="/" className="flex flex-col leading-none group">
+            <span className="font-[family-name:var(--font-heading)] text-xl font-light tracking-[0.15em] text-foreground group-hover:text-primary transition-colors">
+              BONSAI
+            </span>
+            <span className="font-[family-name:var(--font-heading)] text-xl font-semibold tracking-[0.3em] text-primary">
+              MAGIC
             </span>
           </Link>
 
+          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/" className="text-stone-700 hover:text-green-700 transition-colors text-sm tracking-wide uppercase">Home</Link>
-            <Link href="/shop" className="text-stone-700 hover:text-green-700 transition-colors text-sm tracking-wide uppercase">Shop</Link>
-            <Link href="/shop?category=beginners" className="text-stone-700 hover:text-green-700 transition-colors text-sm tracking-wide uppercase">Beginners</Link>
-            <Link href="/shop?category=premium" className="text-stone-700 hover:text-green-700 transition-colors text-sm tracking-wide uppercase">Premium</Link>
+            {NAV_LINKS.map(({ label, href }) => (
+              <Link
+                key={label}
+                href={href}
+                className="jp-label hover:text-foreground transition-colors"
+              >
+                {label}
+              </Link>
+            ))}
           </nav>
 
-          <div className="flex items-center gap-4">
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             <button
               onClick={openCart}
-              className="relative p-2 text-stone-700 hover:text-green-700 transition-colors"
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'icon-sm' }),
+                'relative'
+              )}
               aria-label="Open cart"
             >
-              <ShoppingCart size={22} />
+              <ShoppingCart size={17} />
               {itemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-green-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
                   {itemCount}
                 </span>
               )}
             </button>
             <button
-              className="md:hidden p-2 text-stone-700"
+              className={cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }), 'md:hidden')}
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Toggle menu"
             >
-              {menuOpen ? <X size={22} /> : <Menu size={22} />}
+              {menuOpen ? <X size={17} /> : <Menu size={17} />}
             </button>
           </div>
         </div>
       </div>
 
+      {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-t border-stone-100 px-4 pb-4">
-          <nav className="flex flex-col gap-3 pt-3">
-            <Link href="/" onClick={() => setMenuOpen(false)} className="text-stone-700 py-2 border-b border-stone-100">Home</Link>
-            <Link href="/shop" onClick={() => setMenuOpen(false)} className="text-stone-700 py-2 border-b border-stone-100">Shop</Link>
-            <Link href="/shop?category=beginners" onClick={() => setMenuOpen(false)} className="text-stone-700 py-2 border-b border-stone-100">Beginners</Link>
-            <Link href="/shop?category=premium" onClick={() => setMenuOpen(false)} className="text-stone-700 py-2">Premium</Link>
+        <div className="md:hidden bg-background border-t border-border/60 px-6 py-6">
+          <nav className="flex flex-col gap-5">
+            {[{ label: 'Home', href: '/' }, ...NAV_LINKS].map(({ label, href }) => (
+              <Link
+                key={label}
+                href={href}
+                onClick={() => setMenuOpen(false)}
+                className="jp-label hover:text-foreground transition-colors"
+              >
+                {label}
+              </Link>
+            ))}
           </nav>
         </div>
       )}

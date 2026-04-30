@@ -2,7 +2,9 @@ import Link from 'next/link'
 import { client } from '@/lib/sanity'
 import { FEATURED_PRODUCTS_QUERY } from '@/lib/queries'
 import ProductCard from '@/components/ProductCard'
-import { ArrowRight, Truck, Shield, Leaf } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export const revalidate = 60
 
@@ -11,93 +13,121 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Hero */}
-      <section className="relative bg-green-900 text-white overflow-hidden min-h-[85vh] flex items-center">
-        <div className="absolute inset-0 bg-[url('/hero-bonsai.jpg')] bg-cover bg-center opacity-30" />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-          <div className="max-w-2xl">
-            <span className="text-green-300 text-sm uppercase tracking-widest font-semibold">Handcrafted in South Africa</span>
-            <h1 className="font-[family-name:var(--font-playfair)] text-5xl md:text-7xl font-bold mt-3 mb-6 leading-tight">
-              Living Art.<br />Ancient Wisdom.
+      {/* Hero — full bleed editorial */}
+      <section className="relative min-h-[92vh] flex items-end bg-[#0e0d0b] overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/hero-bonsai.jpg')] bg-cover bg-center opacity-40" />
+        {/* Subtle vertical line — Japanese aesthetic */}
+        <div className="absolute left-[10%] top-0 bottom-0 w-px bg-white/10 hidden lg:block" />
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-10 pb-20 pt-32">
+          <div className="max-w-xl">
+            <p className="jp-label text-white/50 mb-6">South Africa · Est. 2024</p>
+            <h1 className="font-[family-name:var(--font-heading)] font-light text-white leading-[1.1] mb-8" style={{ fontSize: 'clamp(3.5rem, 8vw, 7rem)' }}>
+              Living<br />
+              <em className="not-italic font-semibold">Art.</em>
             </h1>
-            <p className="text-green-100 text-lg md:text-xl leading-relaxed mb-8">
-              Each bonsai tree is a living sculpture, patiently shaped and cared for over years.
-              Discover your perfect tree and bring nature&apos;s tranquility into your home.
+            <div className="w-12 h-px bg-white/40 mb-8" />
+            <p className="text-white/60 text-base leading-loose mb-10 max-w-sm font-light">
+              Each bonsai is a living sculpture — patiently shaped over years,
+              rooted in the ancient art of Japan.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-2 bg-white text-green-900 font-semibold px-8 py-4 rounded-lg hover:bg-green-50 transition-colors"
+                className={cn(
+                  buttonVariants(),
+                  'bg-white text-[#0e0d0b] hover:bg-white/90 rounded-none px-8 py-3 h-auto text-xs tracking-[0.15em] uppercase font-medium gap-2'
+                )}
               >
-                Browse Trees <ArrowRight size={18} />
+                Explore Collection <ArrowRight size={14} />
               </Link>
               <Link
                 href="/shop?category=beginners"
-                className="inline-flex items-center gap-2 border border-white text-white font-semibold px-8 py-4 rounded-lg hover:bg-white/10 transition-colors"
+                className="text-white/60 hover:text-white text-xs tracking-[0.15em] uppercase flex items-center gap-2 transition-colors px-2"
               >
-                Starter Trees
+                Beginner Trees
               </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Trust badges */}
-      <section className="bg-[#f5f0e8] py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: <Leaf size={24} />, title: 'Ethically Grown', desc: 'All trees are sustainably cultivated in South Africa.' },
-              { icon: <Truck size={24} />, title: 'Safe Delivery', desc: 'Carefully packaged and shipped via The Courier Guy nationwide.' },
-              { icon: <Shield size={24} />, title: 'Secure Payments', desc: 'Pay safely with PayFast — all major SA payment methods supported.' },
-            ].map((f) => (
-              <div key={f.title} className="flex gap-4 items-start p-4">
-                <div className="text-green-700 mt-1 flex-shrink-0">{f.icon}</div>
-                <div>
-                  <h3 className="font-semibold text-stone-800">{f.title}</h3>
-                  <p className="text-stone-500 text-sm mt-1">{f.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Philosophy strip */}
+      <section className="border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-12 grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/50">
+          {[
+            { kanji: '自然', label: 'Shizen', desc: 'Naturally cultivated in South Africa, embracing imperfection.' },
+            { kanji: '間', label: 'Ma', desc: 'Delivered with care via The Courier Guy to your door.' },
+            { kanji: '静', label: 'Shizuka', desc: 'Secure payment via PayFast. Complete peace of mind.' },
+          ].map((item) => (
+            <div key={item.kanji} className="py-8 md:py-0 md:px-10 first:pl-0 last:pr-0">
+              <span className="font-[family-name:var(--font-heading)] text-4xl font-light text-muted-foreground/40 block mb-3">
+                {item.kanji}
+              </span>
+              <p className="jp-label text-foreground mb-2">{item.label}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Featured products */}
       {featured.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="flex items-center justify-between mb-8">
+        <section className="max-w-7xl mx-auto px-6 lg:px-10 py-24">
+          <div className="flex items-end justify-between mb-14">
             <div>
-              <span className="text-green-600 text-sm uppercase tracking-widest font-semibold">Handpicked for you</span>
-              <h2 className="font-[family-name:var(--font-playfair)] text-3xl font-bold text-stone-800 mt-1">Featured Trees</h2>
+              <p className="jp-label mb-3">Handpicked Selection</p>
+              <h2 className="font-[family-name:var(--font-heading)] font-light text-foreground" style={{ fontSize: 'clamp(2rem, 4vw, 3rem)' }}>
+                Featured Trees
+              </h2>
             </div>
-            <Link href="/shop" className="hidden md:flex items-center gap-1 text-green-700 hover:text-green-800 font-semibold text-sm">
-              View All <ArrowRight size={16} />
+            <Link
+              href="/shop"
+              className="hidden md:flex items-center gap-2 jp-label hover:text-foreground transition-colors"
+            >
+              All Trees <ArrowRight size={12} />
             </Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border/40">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {featured.map((product: any) => (
-              <ProductCard key={product._id} product={product} />
+              <div key={product._id} className="bg-background">
+                <ProductCard product={product} />
+              </div>
             ))}
+          </div>
+          <div className="mt-10 text-center md:hidden">
+            <Link href="/shop" className="jp-label hover:text-foreground transition-colors inline-flex items-center gap-2">
+              View All Trees <ArrowRight size={12} />
+            </Link>
           </div>
         </section>
       )}
 
-      {/* CTA */}
-      <section className="bg-green-800 text-white py-16 text-center px-4">
-        <h2 className="font-[family-name:var(--font-playfair)] text-3xl md:text-4xl font-bold mb-4">
-          Find Your Perfect Bonsai
-        </h2>
-        <p className="text-green-200 text-lg mb-8 max-w-xl mx-auto">
-          Browse our full collection — from beginner-friendly to rare collector specimens.
-        </p>
-        <Link
-          href="/shop"
-          className="inline-flex items-center gap-2 bg-white text-green-800 font-semibold px-8 py-4 rounded-lg hover:bg-green-50 transition-colors"
-        >
-          Shop All Trees <ArrowRight size={18} />
-        </Link>
+      {/* Quote / CTA */}
+      <section className="border-t border-border/50 bg-muted/40">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <p className="jp-label mb-6">The Bonsai Magic Way</p>
+            <blockquote className="font-[family-name:var(--font-heading)] font-light text-foreground leading-snug" style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)' }}>
+              &ldquo;In the space between root and sky, patience becomes art.&rdquo;
+            </blockquote>
+          </div>
+          <div className="flex flex-col gap-4 lg:items-end">
+            <p className="text-muted-foreground text-sm leading-loose max-w-sm lg:text-right">
+              Every tree in our collection has been grown, shaped, and cared for
+              over many years before finding its new home.
+            </p>
+            <Link
+              href="/shop"
+              className={cn(
+                buttonVariants(),
+                'bg-primary text-primary-foreground hover:bg-primary/90 rounded-none px-8 py-3 h-auto text-xs tracking-[0.15em] uppercase font-medium gap-2 w-fit'
+              )}
+            >
+              Shop All Trees <ArrowRight size={14} />
+            </Link>
+          </div>
+        </div>
       </section>
     </>
   )

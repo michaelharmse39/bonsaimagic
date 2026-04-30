@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ShoppingCart } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useCart } from '@/store/cart'
 import { urlFor } from '@/lib/sanity'
 import toast from 'react-hot-toast'
@@ -22,10 +22,11 @@ export default function ProductCard({ product }: { product: Product }) {
   const { addItem, openCart } = useCart()
 
   const imageUrl = product.image
-    ? urlFor(product.image as Parameters<typeof urlFor>[0]).width(400).height(400).fit('crop').url()
+    ? urlFor(product.image).width(600).height(700).fit('crop').url()
     : null
 
-  function handleAddToCart() {
+  function handleAddToCart(e: React.MouseEvent) {
+    e.preventDefault()
     addItem({
       id: product._id,
       name: product.name,
@@ -35,65 +36,68 @@ export default function ProductCard({ product }: { product: Product }) {
       weight: product.weight ?? 1,
       slug: product.slug.current,
     })
-    toast.success(`${product.name} added to cart`)
+    toast.success(`${product.name} added`)
     openCart()
   }
 
   const outOfStock = product.stock <= 0
+  const onSale = product.comparePrice && product.comparePrice > product.price
 
   return (
-    <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-stone-100">
-      <Link href={`/shop/${product.slug.current}`}>
-        <div className="relative aspect-square overflow-hidden bg-stone-100">
-          {imageUrl ? (
-            <Image
-              src={imageUrl}
-              alt={product.name}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-stone-300 text-6xl">🌿</div>
-          )}
-          {outOfStock && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <span className="bg-white text-stone-700 text-xs font-semibold px-3 py-1 rounded-full">Sold Out</span>
-            </div>
-          )}
-          {product.comparePrice && product.comparePrice > product.price && (
-            <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-              SALE
-            </span>
-          )}
-        </div>
-      </Link>
-
-      <div className="p-4">
-        <Link href={`/shop/${product.slug.current}`}>
-          <h3 className="font-[family-name:var(--font-playfair)] font-semibold text-stone-800 hover:text-green-700 transition-colors line-clamp-2">
-            {product.name}
-          </h3>
-        </Link>
-        {product.shortDescription && (
-          <p className="text-stone-500 text-xs mt-1 line-clamp-2">{product.shortDescription}</p>
-        )}
-        <div className="flex items-center justify-between mt-3">
-          <div>
-            <span className="text-green-700 font-bold text-lg">R{product.price.toFixed(2)}</span>
-            {product.comparePrice && product.comparePrice > product.price && (
-              <span className="text-stone-400 text-sm line-through ml-2">R{product.comparePrice.toFixed(2)}</span>
-            )}
+    <Link href={`/shop/${product.slug.current}`} className="group block p-5 hover:bg-muted/30 transition-colors">
+      {/* Image */}
+      <div className="relative aspect-[4/5] overflow-hidden bg-muted mb-4">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            fill
+            className="object-cover group-hover:scale-[1.03] transition-transform duration-700 ease-out"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-7xl select-none">
+            🌿
           </div>
+        )}
+        {outOfStock && (
+          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+            <span className="jp-label">Sold Out</span>
+          </div>
+        )}
+        {onSale && !outOfStock && (
+          <span className="absolute top-3 left-3 jp-label bg-accent text-accent-foreground px-2 py-1">
+            Sale
+          </span>
+        )}
+        {/* Add button on hover */}
+        {!outOfStock && (
           <button
             onClick={handleAddToCart}
-            disabled={outOfStock}
-            className="flex items-center gap-1.5 bg-green-700 hover:bg-green-800 disabled:bg-stone-300 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+            className="absolute bottom-3 right-3 w-9 h-9 bg-background/90 hover:bg-background text-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 border border-border/50"
+            aria-label="Add to cart"
           >
-            <ShoppingCart size={14} />
-            {outOfStock ? 'Sold Out' : 'Add'}
+            <Plus size={16} />
           </button>
+        )}
+      </div>
+
+      {/* Info */}
+      <div>
+        <h3 className="font-[family-name:var(--font-heading)] font-medium text-[1.1rem] text-foreground leading-tight mb-1 group-hover:text-primary transition-colors">
+          {product.name}
+        </h3>
+        {product.shortDescription && (
+          <p className="text-xs text-muted-foreground leading-relaxed mb-2 line-clamp-1">{product.shortDescription}</p>
+        )}
+        <div className="flex items-center gap-2 mt-1">
+          <span className="font-[family-name:var(--font-heading)] text-lg text-foreground">
+            R{product.price.toFixed(2)}
+          </span>
+          {onSale && (
+            <span className="text-sm text-muted-foreground line-through">R{product.comparePrice!.toFixed(2)}</span>
+          )}
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

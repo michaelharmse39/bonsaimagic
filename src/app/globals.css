@@ -1,20 +1,125 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* Japanese Modern / Japandi palette */
 :root {
-  --background: #fafaf7;
-  --foreground: #1a1a1a;
-  --green-dark: #2d5016;
-  --green-mid: #4a7c28;
-  --green-light: #7ab648;
-  --cream: #f5f0e8;
-  --brown: #6b4226;
+  --background: #f5f2ec;
+  --foreground: #1a1916;
+  --card: #fdfaf5;
+  --card-foreground: #1a1916;
+  --popover: #fdfaf5;
+  --popover-foreground: #1a1916;
+  --primary: #1c3829;
+  --primary-foreground: #f5f2ec;
+  --secondary: #e8e4dc;
+  --secondary-foreground: #1a1916;
+  --muted: #ece9e2;
+  --muted-foreground: #7a7670;
+  --accent: #8b6f5e;
+  --accent-foreground: #fdfaf5;
+  --destructive: #9b2c2c;
+  --border: #d8d4cb;
+  --input: #d8d4cb;
+  --ring: #1c3829;
+  --radius: 0.25rem;
+
+  /* Sidebar (Sanity studio) */
+  --sidebar: #fdfaf5;
+  --sidebar-foreground: #1a1916;
+  --sidebar-primary: #1c3829;
+  --sidebar-primary-foreground: #f5f2ec;
+  --sidebar-accent: #ece9e2;
+  --sidebar-accent-foreground: #1a1916;
+  --sidebar-border: #d8d4cb;
+  --sidebar-ring: #1c3829;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
+.dark {
+  --background: #0e0d0b;
+  --foreground: #e8e3da;
+  --card: #161512;
+  --card-foreground: #e8e3da;
+  --popover: #161512;
+  --popover-foreground: #e8e3da;
+  --primary: #6aab7e;
+  --primary-foreground: #0e0d0b;
+  --secondary: #252320;
+  --secondary-foreground: #e8e3da;
+  --muted: #1e1d1a;
+  --muted-foreground: #9a9590;
+  --accent: #c4956a;
+  --accent-foreground: #0e0d0b;
+  --destructive: #e05252;
+  --border: #2a2925;
+  --input: #2a2925;
+  --ring: #6aab7e;
+
+  --sidebar: #161512;
+  --sidebar-foreground: #e8e3da;
+  --sidebar-primary: #6aab7e;
+  --sidebar-primary-foreground: #0e0d0b;
+  --sidebar-accent: #1e1d1a;
+  --sidebar-accent-foreground: #e8e3da;
+  --sidebar-border: #2a2925;
+  --sidebar-ring: #6aab7e;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 2);
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Japanese-inspired thin divider */
+.jp-divider {
+  @apply w-8 h-px bg-foreground/30 my-4;
+}
+
+/* Tracking wide for labels */
+.jp-label {
+  @apply text-xs uppercase tracking-[0.2em] text-muted-foreground;
 }
