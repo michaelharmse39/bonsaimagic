@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { ShoppingCart, Menu, X, Heart } from 'lucide-react'
+import { GiGardenShears } from 'react-icons/gi'
 import { useCart } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { useState } from 'react'
@@ -30,7 +31,7 @@ export default function Navbar({ user }: NavbarProps) {
   }
 
   const guestLinks = [
-    { label: 'My Account', href: '/login' },
+    { label: 'My Account', href: '/login', icon: <GiGardenShears size={13} /> },
   ]
 
   const authLinks = [
@@ -68,8 +69,10 @@ export default function Navbar({ user }: NavbarProps) {
                   <button onClick={handleLogout} className={linkCls}>Sign Out</button>
                 </>
               ) : (
-                guestLinks.map(({ label, href }) => (
-                  <Link key={label} href={href} className={linkCls}>{label}</Link>
+                guestLinks.map(({ label, href, icon }) => (
+                  <Link key={label} href={href} className={cn(linkCls, 'inline-flex items-center gap-1')}>
+                    {icon}{label}
+                  </Link>
                 ))
               )}
             </div>
@@ -135,7 +138,9 @@ export default function Navbar({ user }: NavbarProps) {
                 <button onClick={() => { setMenuOpen(false); handleLogout() }} className={cn(linkCls, 'text-left')}>Sign Out</button>
               </>
             ) : (
-              <Link href="/login" onClick={() => setMenuOpen(false)} className={linkCls}>Login</Link>
+              <Link href="/login" onClick={() => setMenuOpen(false)} className={cn(linkCls, 'inline-flex items-center gap-1')}>
+                <GiGardenShears size={13} />My Account
+              </Link>
             )}
           </nav>
         </div>
