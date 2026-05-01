@@ -15,17 +15,26 @@ export interface PayFastData {
   item_description?: string
 }
 
+function pfEncode(val: string): string {
+  return encodeURIComponent(val)
+    .replace(/%20/g, '+')
+    .replace(/!/g, '%21')
+    .replace(/'/g, '%27')
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29')
+    .replace(/\*/g, '%2A')
+}
+
 export function generateSignature(data: Record<string, string>, passphrase?: string): string {
-  let queryString = Object.entries(data)
-    .filter(([, v]) => v !== '' && v !== undefined)
-    .map(([k, v]) => `${k}=${encodeURIComponent(v).replace(/%20/g, '+')}`)
+  const queryString = Object.entries(data)
+    .filter(([, v]) => v !== '' && v !== undefined && v !== null)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${k}=${pfEncode(String(v).trim())}`)
     .join('&')
 
-  if (passphrase) {
-    queryString += `&passphrase=${encodeURIComponent(passphrase).replace(/%20/g, '+')}`
-  }
+  const str = passphrase ? `${queryString}&passphrase=${pfEncode(passphrase.trim())}` : queryString
 
-  return crypto.createHash('md5').update(queryString).digest('hex')
+  return crypto.createHash('md5').update(str).digest('hex')
 }
 
 export function buildPayFastForm(orderData: {
