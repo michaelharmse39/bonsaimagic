@@ -30,7 +30,7 @@ export default function Navbar({ user }: NavbarProps) {
   }
 
   const guestLinks = [
-    { label: 'Login', href: '/login' },
+    { label: 'My Account', href: '/login' },
   ]
 
   const authLinks = [
