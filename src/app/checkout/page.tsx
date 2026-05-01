@@ -137,9 +137,9 @@ export default function CheckoutPage() {
         onClick={() => { clearCart(); (document.getElementById('payfast-form') as HTMLFormElement)?.submit() }}>
         Proceed to Payment
       </Button>
-      <div className="max-w-xl w-full text-left bg-gray-100 dark:bg-gray-900 rounded p-3 text-xs break-all">
-        <p className="font-bold mb-1 text-red-600">DEBUG — copy this:</p>
-        <pre className="select-all whitespace-pre-wrap">{JSON.stringify(payFastData, null, 2)}</pre>
+      <div style={{background:'yellow',color:'black',padding:'12px',maxWidth:'700px',wordBreak:'break-all',textAlign:'left'}}>
+        <strong style={{color:'red'}}>DEBUG — screenshot this:</strong>
+        <pre style={{whiteSpace:'pre-wrap',color:'black',fontSize:'11px'}}>{JSON.stringify(payFastData, null, 2)}</pre>
       </div>
     </div>
   )
