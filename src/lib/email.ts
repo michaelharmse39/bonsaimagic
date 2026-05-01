@@ -10,9 +10,12 @@ function getResend() {
 }
 
 export async function sendOtpEmail(to: string, otp: string, purpose: 'register' | 'reset') {
+  // Always log so the code is visible in Vercel function logs while domain isn't verified
+  console.log(`[OTP] ${purpose} code for ${to}: ${otp}`)
+
   const resend = getResend()
   if (!resend) {
-    console.log(`[Email] RESEND_API_KEY not set — skipping OTP email (code: ${otp})`)
+    console.log(`[Email] RESEND_API_KEY not set — skipping OTP email`)
     return
   }
   const subject = purpose === 'register' ? 'Your Bonsai Magic verification code' : 'Reset your Bonsai Magic password'
