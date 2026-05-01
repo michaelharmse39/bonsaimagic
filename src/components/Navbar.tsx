@@ -19,7 +19,7 @@ const ACCOUNT_LINKS = [
   { label: 'My Account', href: '/account' },
 ]
 
-const linkCls = 'px-3 py-1.5 text-[11px] tracking-[0.1em] uppercase font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-sm transition-colors duration-150 whitespace-nowrap'
+const linkCls = 'px-2 py-1 text-[10px] tracking-[0.08em] uppercase font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-sm transition-colors duration-150 whitespace-nowrap'
 const iconCls = 'relative p-2 rounded-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors duration-150'
 
 export default function Navbar() {
@@ -34,8 +34,8 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link href="/" className="flex flex-col leading-none group shrink-0">
-            <span className="font-(family-name:--font-heading) text-base font-light tracking-[0.15em] text-foreground group-hover:text-primary transition-colors leading-tight">BONSAI</span>
-            <span className="font-(family-name:--font-heading) text-base font-semibold tracking-[0.3em] text-primary leading-tight">MAGIC</span>
+            <span className="font-(family-name:--font-heading) text-sm font-light tracking-[0.15em] text-foreground group-hover:text-primary transition-colors leading-tight">BONSAI</span>
+            <span className="font-(family-name:--font-heading) text-sm font-semibold tracking-[0.3em] text-primary leading-tight">MAGIC</span>
           </Link>
 
           {/* Shop nav */}
