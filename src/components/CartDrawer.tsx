@@ -1,6 +1,6 @@
 'use client'
 import { useCart } from '@/store/cart'
-import { X, Trash2, Plus, Minus } from 'lucide-react'
+import { Trash2, Plus, Minus } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -8,18 +8,14 @@ import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQuantity, total } = useCart()
+  const { items, isOpen, closeCart, removeItem, updateQuantity } = useCart()
+  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
       <SheetContent className="flex flex-col w-full max-w-sm p-0 rounded-none border-l border-border/60 bg-background">
         <SheetHeader className="px-6 py-5 border-b border-border/60">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="font-[family-name:var(--font-heading)] font-light text-xl tracking-wide">Cart</SheetTitle>
-            <button onClick={closeCart} className={cn(buttonVariants({ variant: 'ghost', size: 'icon-sm' }))}>
-              <X size={16} />
-            </button>
-          </div>
+          <SheetTitle className="font-[family-name:var(--font-heading)] font-light text-xl tracking-wide">Cart</SheetTitle>
           {items.length > 0 && (
             <p className="jp-label mt-1">{items.reduce((s, i) => s + i.quantity, 0)} item{items.reduce((s, i) => s + i.quantity, 0) !== 1 ? 's' : ''}</p>
           )}
