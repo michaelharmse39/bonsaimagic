@@ -34,7 +34,7 @@ export function buildPayFastForm(orderData: {
   itemName: string
   customer: { firstName: string; lastName: string; email: string }
 }): { url: string; fields: Record<string, string> } {
-  const isSandbox = process.env.PAYFAST_SANDBOX === 'true'
+  const isSandbox = process.env.PAYFAST_SANDBOX === 'true' || process.env.PAYFAST_MERCHANT_ID === '10000100'
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://bonsaimagic.co.za'
 
   // Sandbox uses PayFast test credentials — ignore env vars to avoid misconfiguration
