@@ -7,6 +7,8 @@ import CartDrawer from '@/components/CartDrawer'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
+import { cookies } from 'next/headers'
+import { verifyToken } from '@/lib/auth'
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -29,12 +31,16 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('bm_user_session')?.value
+  const user = token ? await verifyToken(token) : null
+
   return (
     <html lang="en" suppressHydrationWarning className={cn(cormorant.variable, inter.variable)}>
       <body className="min-h-full flex flex-col font-[family-name:var(--font-sans)] text-[15px] leading-relaxed">
         <ThemeProvider>
-          <Navbar />
+          <Navbar user={user ? { firstName: user.firstName, email: user.email } : null} />
           <CartDrawer />
           <main className="flex-1">{children}</main>
           <Footer />

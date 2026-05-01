@@ -4,30 +4,40 @@ import { ShoppingCart, Menu, X, Heart } from 'lucide-react'
 import { useCart } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { cn } from '@/lib/utils'
 
-const SHOP_LINKS = [
-  { label: 'Collection', href: '/shop' },
-]
-
-const ACCOUNT_LINKS = [
-  { label: 'Track Order', href: '/track' },
-  { label: 'Login', href: '/login' },
-  { label: 'Register', href: '/register' },
-  { label: 'Orders', href: '/orders' },
-  { label: 'My Account', href: '/account' },
-]
+interface NavbarProps {
+  user: { firstName: string; email: string } | null
+}
 
 const linkCls = 'px-2 py-1 text-[10px] tracking-[0.08em] uppercase font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-sm transition-colors duration-150 whitespace-nowrap'
 const iconCls = 'relative p-2 rounded-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors duration-150'
 
-export default function Navbar() {
+export default function Navbar({ user }: NavbarProps) {
   const { items, openCart } = useCart()
   const { items: wishlistItems } = useWishlist()
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0)
   const wishlistCount = wishlistItems.length
   const [menuOpen, setMenuOpen] = useState(false)
+  const router = useRouter()
+
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/login')
+    router.refresh()
+  }
+
+  const guestLinks = [
+    { label: 'Login', href: '/login' },
+  ]
+
+  const authLinks = [
+    { label: 'Orders', href: '/orders' },
+    { label: 'Profile', href: '/profile' },
+    { label: 'Track Order', href: '/track' },
+  ]
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/60">
@@ -42,24 +52,28 @@ export default function Navbar() {
 
           {/* Shop nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {SHOP_LINKS.map(({ label, href }) => (
-              <Link key={label} href={href} className={linkCls}>{label}</Link>
-            ))}
+            <Link href="/shop" className={linkCls}>Collection</Link>
           </nav>
 
-          {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Account nav + icons grouped together */}
+          {/* Desktop account nav */}
           <div className="hidden md:flex items-center">
-            {/* Account links */}
             <div className="flex items-center gap-1 pr-3 mr-3 border-r border-border/60">
-              {ACCOUNT_LINKS.map(({ label, href }) => (
-                <Link key={label} href={href} className={linkCls}>{label}</Link>
-              ))}
+              {user ? (
+                <>
+                  {authLinks.map(({ label, href }) => (
+                    <Link key={label} href={href} className={linkCls}>{label}</Link>
+                  ))}
+                  <button onClick={handleLogout} className={linkCls}>Sign Out</button>
+                </>
+              ) : (
+                guestLinks.map(({ label, href }) => (
+                  <Link key={label} href={href} className={linkCls}>{label}</Link>
+                ))
+              )}
             </div>
 
-            {/* Icons: wishlist | cart | theme toggle */}
             <div className="flex items-center gap-0.5">
               <Link href="/wishlist" className={iconCls} aria-label="Wishlist">
                 <Heart size={16} />
@@ -81,7 +95,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Mobile: just icons + hamburger */}
+          {/* Mobile icons + hamburger */}
           <div className="flex md:hidden items-center gap-0.5 ml-auto">
             <Link href="/wishlist" className={iconCls} aria-label="Wishlist">
               <Heart size={16} />
@@ -111,11 +125,18 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden bg-background border-t border-border/60 px-6 py-5">
           <nav className="flex flex-col gap-1">
-            {[{ label: 'Home', href: '/' }, ...SHOP_LINKS, ...ACCOUNT_LINKS].map(({ label, href }) => (
-              <Link key={label} href={href} onClick={() => setMenuOpen(false)} className={linkCls}>
-                {label}
-              </Link>
-            ))}
+            <Link href="/" onClick={() => setMenuOpen(false)} className={linkCls}>Home</Link>
+            <Link href="/shop" onClick={() => setMenuOpen(false)} className={linkCls}>Collection</Link>
+            {user ? (
+              <>
+                {authLinks.map(({ label, href }) => (
+                  <Link key={label} href={href} onClick={() => setMenuOpen(false)} className={linkCls}>{label}</Link>
+                ))}
+                <button onClick={() => { setMenuOpen(false); handleLogout() }} className={cn(linkCls, 'text-left')}>Sign Out</button>
+              </>
+            ) : (
+              <Link href="/login" onClick={() => setMenuOpen(false)} className={linkCls}>Login</Link>
+            )}
           </nav>
         </div>
       )}

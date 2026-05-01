@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Routes that require a logged-in user session
-const PROTECTED_PATHS = ['/account', '/orders']
+const PROTECTED_PATHS = ['/account', '/orders', '/profile', '/track']
 
-// Routes that are always public
 const PUBLIC_PATHS = [
   '/login', '/register',
   '/api/auth',
@@ -16,10 +14,8 @@ const PUBLIC_PATHS = [
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Always allow public paths
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return NextResponse.next()
 
-  // Protected routes require a user session
   if (PROTECTED_PATHS.some((p) => pathname.startsWith(p))) {
     const session = req.cookies.get('bm_user_session')?.value
     if (!session) {
