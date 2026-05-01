@@ -35,11 +35,11 @@ export function buildPayFastForm(orderData: {
   customer: { firstName: string; lastName: string; email: string }
 }): { url: string; fields: Record<string, string> } {
   const isSandbox = process.env.PAYFAST_SANDBOX === 'true'
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://bonsaimagic.co.za'
 
   const data: Record<string, string> = {
-    merchant_id: process.env.PAYFAST_MERCHANT_ID!,
-    merchant_key: process.env.PAYFAST_MERCHANT_KEY!,
+    merchant_id: process.env.PAYFAST_MERCHANT_ID || '',
+    merchant_key: process.env.PAYFAST_MERCHANT_KEY || '',
     return_url: `${baseUrl}/checkout/success?order=${orderData.orderId}`,
     cancel_url: `${baseUrl}/checkout/cancel`,
     notify_url: `${baseUrl}/api/payfast/notify`,
