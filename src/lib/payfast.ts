@@ -47,14 +47,11 @@ export function buildPayFastForm(orderData: {
 }): { url: string; fields: Record<string, string>; _debug_sig_string: string } {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://bonsaimagic.co.za'
 
-  // Hardcoded sandbox credentials — swap for live credentials when going live
-  const SANDBOX_MERCHANT_ID = '10043594'
-  const SANDBOX_MERCHANT_KEY = 'u0rwnye7fpfrh'
-
-  const isSandbox = process.env.PAYFAST_SANDBOX !== 'false'
-  const merchantId = isSandbox ? SANDBOX_MERCHANT_ID : (process.env.PAYFAST_MERCHANT_ID || '')
-  const merchantKey = isSandbox ? SANDBOX_MERCHANT_KEY : (process.env.PAYFAST_MERCHANT_KEY || '')
-  const passphrase = isSandbox ? undefined : (process.env.PAYFAST_PASSPHRASE || undefined)
+  // Sandbox mode — change these three lines when going live
+  const isSandbox = true
+  const merchantId = '10043594'
+  const merchantKey = 'u0rwnye7fpfrh'
+  const passphrase = undefined
 
   const data: Record<string, string> = {
     merchant_id: merchantId,
