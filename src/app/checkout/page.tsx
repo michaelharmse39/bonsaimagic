@@ -166,11 +166,11 @@ export default function CheckoutPage() {
           <Card>
             <CardHeader><CardTitle className="text-base">Delivery Address</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <Input placeholder="Street Address" autoComplete="address-line1" ref={streetRef} value={form.street} onChange={(e) => set('street', e.target.value)} />
-              <Input placeholder="Suburb" autoComplete="address-level3" value={form.suburb} onChange={(e) => set('suburb', e.target.value)} />
+              <Input required placeholder="Street Address" autoComplete="address-line1" ref={streetRef} value={form.street} onChange={(e) => set('street', e.target.value)} />
+              <Input required placeholder="Suburb" autoComplete="address-level3" value={form.suburb} onChange={(e) => set('suburb', e.target.value)} />
               <div className="grid grid-cols-2 gap-3">
-                <Input placeholder="City" autoComplete="address-level2" value={form.city} onChange={(e) => set('city', e.target.value)} />
-                <Input placeholder="Postal Code" autoComplete="postal-code" value={form.postalCode} onChange={(e) => set('postalCode', e.target.value)} />
+                <Input required placeholder="City" autoComplete="address-level2" value={form.city} onChange={(e) => set('city', e.target.value)} />
+                <Input required placeholder="Postal Code" autoComplete="postal-code" value={form.postalCode} onChange={(e) => set('postalCode', e.target.value)} />
               </div>
               <Select value={form.province} onValueChange={(v) => v && set('province', v)}>
                 <SelectTrigger><SelectValue placeholder="Select Province" /></SelectTrigger>
