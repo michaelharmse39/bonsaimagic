@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
+const VAT_RATE = 0.15
+
 interface ShippingForm {
   firstName: string; lastName: string; email: string; phone: string
   street: string; suburb: string; city: string; province: string; postalCode: string
@@ -20,12 +22,16 @@ const PROVINCES = ['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpop
 
 export default function CheckoutPage() {
   const { items, clearCart } = useCart()
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+
+  const subtotalExVat = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+  const vatAmount = subtotalExVat * VAT_RATE
+  const shippingQuote = 0
+  const orderTotal = subtotalExVat + vatAmount + shippingQuote
+
   const [form, setForm] = useState<ShippingForm>({
     firstName: '', lastName: '', email: '', phone: '',
     street: '', suburb: '', city: '', province: 'Gauteng', postalCode: '',
   })
-  const shippingQuote = 0
   const [submitting, setSubmitting] = useState(false)
   const [payFastData, setPayFastData] = useState<{ url: string; fields: Record<string, string> } | null>(null)
 
@@ -42,9 +48,15 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId, amount: total + shippingQuote,
+          orderId,
+          amount: orderTotal,
           customer: { firstName: form.firstName, lastName: form.lastName, email: form.email },
-          items: items.map((i) => ({ productId: i.id, name: i.name, price: i.price, quantity: i.quantity })),
+          items: items.map((i) => ({
+            productId: i.id,
+            name: i.name,
+            price: +(i.price * (1 + VAT_RATE)).toFixed(2),
+            quantity: i.quantity,
+          })),
           shippingAddress: { street: form.street, suburb: form.suburb, city: form.city, province: form.province, postalCode: form.postalCode },
           shippingCost: shippingQuote,
         }),
@@ -66,7 +78,7 @@ export default function CheckoutPage() {
 
   if (payFastData) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-4 text-center">
-      <h2 className="font-[family-name:var(--font-playfair)] text-2xl font-bold">Redirecting to PayFast...</h2>
+      <h2 className="font-(family-name:--font-playfair) text-2xl font-bold">Redirecting to PayFast...</h2>
       <p className="text-muted-foreground">You will be redirected to complete your payment securely.</p>
       <form action={payFastData.url} method="POST" id="payfast-form" className="hidden">
         {Object.entries(payFastData.fields).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
@@ -78,14 +90,12 @@ export default function CheckoutPage() {
     </div>
   )
 
-  const orderTotal = total + shippingQuote
-
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <Link href="/shop" className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' mb-6 gap-1 text-muted-foreground'}>
         <ArrowLeft size={16} /> Continue Shopping
       </Link>
-      <h1 className="font-[family-name:var(--font-playfair)] text-3xl font-bold mb-8">Checkout</h1>
+      <h1 className="font-(family-name:--font-playfair) text-3xl font-bold mb-8">Checkout</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -123,29 +133,48 @@ export default function CheckoutPage() {
           <p className="text-xs text-muted-foreground text-center">🔒 Secured by PayFast. Your payment details are never stored on our servers.</p>
         </form>
 
+        {/* Order Summary */}
         <div>
           <h2 className="font-semibold text-lg mb-4">Order Summary</h2>
           <Card>
             <CardContent className="pt-4 space-y-3">
-              {items.map((item) => (
-                <div key={item.id} className="flex gap-3 items-center">
-                  <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                    {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
+              {items.map((item) => {
+                const lineExVat = item.price * item.quantity
+                const lineVat = lineExVat * VAT_RATE
+                return (
+                  <div key={item.id} className="flex gap-3 items-start">
+                    <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                      {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
+                      <p className="text-xs text-muted-foreground">VAT: R{lineVat.toFixed(2)}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-semibold text-green-600 dark:text-green-400">R{(lineExVat + lineVat).toFixed(2)}</p>
+                      <p className="text-xs text-muted-foreground">ex. VAT R{lineExVat.toFixed(2)}</p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                  </div>
-                  <span className="text-sm font-semibold text-green-600 dark:text-green-400">R{(item.price * item.quantity).toFixed(2)}</span>
-                </div>
-              ))}
+                )
+              })}
               <Separator />
               <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>R{total.toFixed(2)}</span></div>
-                <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span>Free</span></div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Subtotal (ex. VAT)</span>
+                  <span>R{subtotalExVat.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>VAT (15%)</span>
+                  <span>R{vatAmount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Shipping</span>
+                  <span>Free</span>
+                </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-base pt-1">
-                  <span>Total</span>
+                  <span>Total (incl. VAT)</span>
                   <span className="text-green-600 dark:text-green-400">R{orderTotal.toFixed(2)}</span>
                 </div>
               </div>
