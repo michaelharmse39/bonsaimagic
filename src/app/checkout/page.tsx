@@ -95,7 +95,7 @@ export default function CheckoutPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const shipping = shippingQuote ?? 0
+    if (shippingQuote === null) { toast.error('Please get a shipping quote first'); return }
     setSubmitting(true)
     try {
       const orderId = `BM-${Date.now()}`
@@ -103,11 +103,11 @@ export default function CheckoutPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId, amount: total + shipping,
+          orderId, amount: total + shippingQuote,
           customer: { firstName: form.firstName, lastName: form.lastName, email: form.email },
           items: items.map((i) => ({ productId: i.id, name: i.name, price: i.price, quantity: i.quantity })),
           shippingAddress: { street: form.street, suburb: form.suburb, city: form.city, province: form.province, postalCode: form.postalCode },
-          shippingCost: shipping,
+          shippingCost: shippingQuote,
         }),
       })
       if (!res.ok) throw new Error('Failed to create order')
@@ -140,7 +140,7 @@ export default function CheckoutPage() {
     </div>
   )
 
-  const orderTotal = total + (shippingQuote ?? 0)
+  const orderTotal = shippingQuote !== null ? total + shippingQuote : null
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -194,8 +194,8 @@ export default function CheckoutPage() {
             </Card>
           )}
 
-          <Button type="submit" disabled={submitting} className="w-full bg-green-700 hover:bg-green-800 text-white py-6 text-base gap-2">
-            {submitting ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : `Pay Securely with PayFast — R${orderTotal.toFixed(2)}`}
+          <Button type="submit" disabled={submitting || shippingQuote === null} className="w-full bg-green-700 hover:bg-green-800 text-white py-6 text-base gap-2">
+            {submitting ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : `Pay Securely with PayFast${orderTotal ? ` — R${orderTotal.toFixed(2)}` : ''}`}
           </Button>
           <p className="text-xs text-muted-foreground text-center">🔒 Secured by PayFast. Your payment details are never stored on our servers.</p>
         </form>
@@ -219,11 +219,11 @@ export default function CheckoutPage() {
               <Separator />
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>R{total.toFixed(2)}</span></div>
-                <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span>{shippingQuote !== null ? `R${shippingQuote.toFixed(2)}` : 'Not quoted'}</span></div>
+                <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span>{shippingQuote !== null ? `R${shippingQuote.toFixed(2)}` : '—'}</span></div>
                 <Separator />
                 <div className="flex justify-between font-bold text-base pt-1">
                   <span>Total</span>
-                  <span className="text-green-600 dark:text-green-400">R{orderTotal.toFixed(2)}</span>
+                  <span className="text-green-600 dark:text-green-400">{orderTotal !== null ? `R${orderTotal.toFixed(2)}` : '—'}</span>
                 </div>
               </div>
             </CardContent>
