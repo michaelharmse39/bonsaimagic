@@ -23,8 +23,12 @@ export async function sendOtpEmail(to: string, otp: string, purpose: 'register' 
   const body = purpose === 'register'
     ? 'Enter this code to complete your registration. It expires in 10 minutes.'
     : 'Enter this code to reset your password. It expires in 10 minutes.'
-  try {
-    await resend.emails.send({
+  const apiKey = process.env.RESEND_API_KEY
+  console.log('[Email] Using key prefix:', apiKey?.slice(0, 8))
+  const rawRes = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
       from: FROM,
       to,
       subject,
@@ -36,10 +40,13 @@ export async function sendOtpEmail(to: string, otp: string, purpose: 'register' 
           <p style="color:#999;font-size:12px">If you didn't request this, you can safely ignore this email.</p>
         </div>
       `,
-    })
-  } catch (err: unknown) {
-    const e = err as { statusCode?: number; message?: string; name?: string }
-    console.error('[Email] Resend error:', JSON.stringify({ statusCode: e?.statusCode, message: e?.message, name: e?.name }))
+    }),
+  })
+  const resBody = await rawRes.json()
+  if (!rawRes.ok) {
+    console.error('[Email] Resend error:', rawRes.status, JSON.stringify(resBody))
+  } else {
+    console.log('[Email] Sent OK:', resBody.id)
   }
 }
 
