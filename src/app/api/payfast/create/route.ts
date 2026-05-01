@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { buildPayFastForm } from '@/lib/payfast'
 import { createClient } from 'next-sanity'
 
+export const runtime = 'nodejs'
+
 const writeClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'c1o4kw27',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
@@ -15,7 +17,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { orderId, amount, customer, items, shippingAddress, shippingCost } = body
 
-    // Save order — non-blocking so PayFast redirect still works if this fails
+    // Ensure amount is a number
+    const numericAmount = Number(amount)
+    if (isNaN(numericAmount)) {
+      return NextResponse.json({ error: 'Invalid amount', details: `amount=${amount}` }, { status: 400 })
+    }
+
+    // Save order non-blocking
     writeClient.create({
       _type: 'order',
       orderId,
@@ -23,14 +31,14 @@ export async function POST(req: NextRequest) {
       customer,
       shippingAddress,
       items,
-      subtotal: amount - shippingCost,
-      shippingCost,
-      total: amount,
+      subtotal: numericAmount - Number(shippingCost),
+      shippingCost: Number(shippingCost),
+      total: numericAmount,
     }).catch((err) => console.error('Sanity order save failed:', err))
 
     const payFastData = buildPayFastForm({
       orderId,
-      amount,
+      amount: numericAmount,
       itemName: `Bonsai Magic Order ${orderId}`,
       customer,
     })
