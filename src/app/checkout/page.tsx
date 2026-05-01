@@ -19,7 +19,8 @@ interface ShippingForm {
 const PROVINCES = ['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','North West','Northern Cape','Western Cape']
 
 export default function CheckoutPage() {
-  const { items, total, totalWeight, clearCart } = useCart()
+  const { items, totalWeight, clearCart } = useCart()
+  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const [form, setForm] = useState<ShippingForm>({
     firstName: '', lastName: '', email: '', phone: '',
     street: '', suburb: '', city: '', province: 'Gauteng', postalCode: '',
