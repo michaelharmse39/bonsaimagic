@@ -10,12 +10,7 @@ import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
   { label: 'Collection', href: '/shop' },
-  { label: 'Beginners', href: '/shop?category=beginners' },
-  { label: 'Premium', href: '/shop?category=premium' },
   { label: 'Track Order', href: '/track' },
-]
-
-const ACCOUNT_LINKS = [
   { label: 'Login', href: '/login' },
   { label: 'Register', href: '/register' },
   { label: 'Orders', href: '/orders' },
@@ -29,47 +24,29 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/60">
-      {/* Account bar */}
-      <div className="hidden md:block border-b border-border/40 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10">
-          <div className="flex items-center justify-end gap-1 h-9">
-            {ACCOUNT_LINKS.map(({ label, href }) => (
-              <Link
-                key={label}
-                href={href}
-                className="jp-label text-[10px] px-3 py-1 hover:text-foreground transition-colors border-r border-border/40 last:border-r-0"
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Main nav */}
       <div className="max-w-7xl mx-auto px-6 lg:px-10">
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link href="/" className="flex flex-col leading-none group">
-            <span className="font-[family-name:var(--font-heading)] text-xl font-light tracking-[0.15em] text-foreground group-hover:text-primary transition-colors">
+          <Link href="/" className="flex flex-col leading-none group shrink-0">
+            <span className="font-(family-name:--font-heading) text-xl font-light tracking-[0.15em] text-foreground group-hover:text-primary transition-colors">
               BONSAI
             </span>
-            <span className="font-[family-name:var(--font-heading)] text-xl font-semibold tracking-[0.3em] text-primary">
+            <span className="font-(family-name:--font-heading) text-xl font-semibold tracking-[0.3em] text-primary">
               MAGIC
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          {/* Desktop nav — all links in one row */}
+          <nav className="hidden md:flex items-center gap-6">
             {NAV_LINKS.map(({ label, href }) => (
-              <Link key={label} href={href} className="jp-label hover:text-foreground transition-colors">
+              <Link key={label} href={href} className="jp-label hover:text-foreground transition-colors whitespace-nowrap">
                 {label}
               </Link>
             ))}
           </nav>
 
-          {/* Actions */}
+          {/* Icons */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Link
@@ -116,13 +93,6 @@ export default function Navbar() {
                 {label}
               </Link>
             ))}
-            <div className="border-t border-border/40 pt-4 flex flex-col gap-4">
-              {ACCOUNT_LINKS.map(({ label, href }) => (
-                <Link key={label} href={href} onClick={() => setMenuOpen(false)} className="jp-label hover:text-foreground transition-colors flex items-center gap-2">
-                  <User size={13} />{label}
-                </Link>
-              ))}
-            </div>
           </nav>
         </div>
       )}
