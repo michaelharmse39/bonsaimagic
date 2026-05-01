@@ -4,7 +4,6 @@ import { useCart } from '@/store/cart'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Loader2 } from 'lucide-react'
-import toast from 'react-hot-toast'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -19,47 +18,22 @@ interface ShippingForm {
 const PROVINCES = ['Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','North West','Northern Cape','Western Cape']
 
 export default function CheckoutPage() {
-  const { items, totalWeight, clearCart } = useCart()
+  const { items, clearCart } = useCart()
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const [form, setForm] = useState<ShippingForm>({
     firstName: '', lastName: '', email: '', phone: '',
     street: '', suburb: '', city: '', province: 'Gauteng', postalCode: '',
   })
-  const [shippingQuote, setShippingQuote] = useState<number | null>(null)
-  const [loadingQuote, setLoadingQuote] = useState(false)
+  const shippingQuote = 0
   const [submitting, setSubmitting] = useState(false)
   const [payFastData, setPayFastData] = useState<{ url: string; fields: Record<string, string> } | null>(null)
 
   function set(field: keyof ShippingForm, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
-    setShippingQuote(null)
-  }
-
-  async function getShippingQuote() {
-    if (!form.suburb || !form.city || !form.postalCode) {
-      toast.error('Please fill in suburb, city and postal code first')
-      return
-    }
-    setLoadingQuote(true)
-    try {
-      const res = await fetch('/api/courier-guy/quote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deliver_suburb: form.suburb, deliver_city: form.city, deliver_postal_code: form.postalCode, mass: totalWeight }),
-      })
-      const data = await res.json()
-      setShippingQuote(data.price ?? 85)
-    } catch {
-      setShippingQuote(85)
-      toast('Could not get live quote — using estimate of R85', { icon: 'ℹ️' })
-    } finally {
-      setLoadingQuote(false)
-    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (shippingQuote === null) { toast.error('Please get a shipping quote first'); return }
     setSubmitting(true)
     try {
       const orderId = `BM-${Date.now()}`
@@ -103,7 +77,7 @@ export default function CheckoutPage() {
     </div>
   )
 
-  const orderTotal = shippingQuote !== null ? total + shippingQuote : null
+  const orderTotal = total + shippingQuote
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -142,23 +116,8 @@ export default function CheckoutPage() {
             </CardContent>
           </Card>
 
-          <Button type="button" variant="outline" className="w-full border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-950 gap-2" onClick={getShippingQuote} disabled={loadingQuote}>
-            {loadingQuote ? <><Loader2 size={16} className="animate-spin" /> Getting Quote...</> : '📦 Get Shipping Quote'}
-          </Button>
-
-          {shippingQuote !== null && (
-            <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30">
-              <CardContent className="pt-4 text-sm">
-                <p className="font-semibold text-green-800 dark:text-green-300">
-                  Shipping via The Courier Guy: <span>R{shippingQuote.toFixed(2)}</span>
-                </p>
-                <p className="text-green-600 dark:text-green-500 text-xs mt-1">Estimated delivery: 2–4 business days</p>
-              </CardContent>
-            </Card>
-          )}
-
-          <Button type="submit" disabled={submitting || shippingQuote === null} className="w-full bg-green-700 hover:bg-green-800 text-white py-6 text-base gap-2">
-            {submitting ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : `Pay Securely with PayFast${orderTotal ? ` — R${orderTotal.toFixed(2)}` : ''}`}
+          <Button type="submit" disabled={submitting} className="w-full bg-green-700 hover:bg-green-800 text-white py-6 text-base gap-2">
+            {submitting ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : `Pay Securely with PayFast — R${orderTotal.toFixed(2)}`}
           </Button>
           <p className="text-xs text-muted-foreground text-center">🔒 Secured by PayFast. Your payment details are never stored on our servers.</p>
         </form>
@@ -182,11 +141,11 @@ export default function CheckoutPage() {
               <Separator />
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between text-muted-foreground"><span>Subtotal</span><span>R{total.toFixed(2)}</span></div>
-                <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span>{shippingQuote !== null ? `R${shippingQuote.toFixed(2)}` : '—'}</span></div>
+                <div className="flex justify-between text-muted-foreground"><span>Shipping</span><span>Free</span></div>
                 <Separator />
                 <div className="flex justify-between font-bold text-base pt-1">
                   <span>Total</span>
-                  <span className="text-green-600 dark:text-green-400">{orderTotal !== null ? `R${orderTotal.toFixed(2)}` : '—'}</span>
+                  <span className="text-green-600 dark:text-green-400">R{orderTotal.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
