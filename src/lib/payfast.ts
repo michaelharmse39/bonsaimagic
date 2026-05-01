@@ -28,11 +28,13 @@ function pfEncode(val: string): string {
 export function generateSignature(data: Record<string, string>, passphrase?: string): string {
   const queryString = Object.entries(data)
     .filter(([, v]) => v !== '' && v !== undefined && v !== null)
-    .sort(([a], [b]) => a.localeCompare(b))
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
     .map(([k, v]) => `${k}=${pfEncode(String(v).trim())}`)
     .join('&')
 
   const str = passphrase ? `${queryString}&passphrase=${pfEncode(passphrase.trim())}` : queryString
+
+  console.log('[PayFast] Signature string:', str)
 
   return crypto.createHash('md5').update(str).digest('hex')
 }
@@ -42,12 +44,16 @@ export function buildPayFastForm(orderData: {
   amount: number
   itemName: string
   customer: { firstName: string; lastName: string; email: string }
-}): { url: string; fields: Record<string, string> } {
-  const isSandbox = process.env.PAYFAST_SANDBOX === 'true' || process.env.PAYFAST_MERCHANT_ID === '10000100'
+}): { url: string; fields: Record<string, string>; _debug_sig_string: string } {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://bonsaimagic.co.za'
 
-  const merchantId = isSandbox ? (process.env.PAYFAST_MERCHANT_ID || '10043594') : (process.env.PAYFAST_MERCHANT_ID || '')
-  const merchantKey = isSandbox ? (process.env.PAYFAST_MERCHANT_KEY || 'u0rwnye7fpfrh') : (process.env.PAYFAST_MERCHANT_KEY || '')
+  // Hardcoded sandbox credentials — swap for live credentials when going live
+  const SANDBOX_MERCHANT_ID = '10043594'
+  const SANDBOX_MERCHANT_KEY = 'u0rwnye7fpfrh'
+
+  const isSandbox = process.env.PAYFAST_SANDBOX !== 'false'
+  const merchantId = isSandbox ? SANDBOX_MERCHANT_ID : (process.env.PAYFAST_MERCHANT_ID || '')
+  const merchantKey = isSandbox ? SANDBOX_MERCHANT_KEY : (process.env.PAYFAST_MERCHANT_KEY || '')
   const passphrase = isSandbox ? undefined : (process.env.PAYFAST_PASSPHRASE || undefined)
 
   const data: Record<string, string> = {
@@ -64,6 +70,13 @@ export function buildPayFastForm(orderData: {
     item_name: orderData.itemName,
   }
 
+  // Build the signature string exactly as we hash it so the API can return it for debugging
+  const sigString = Object.entries(data)
+    .filter(([, v]) => v !== '' && v !== undefined && v !== null)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([k, v]) => `${k}=${pfEncode(String(v).trim())}`)
+    .join('&')
+
   const signature = generateSignature(data, passphrase)
   data.signature = signature
 
@@ -72,6 +85,7 @@ export function buildPayFastForm(orderData: {
       ? 'https://sandbox.payfast.co.za/eng/process'
       : 'https://www.payfast.co.za/eng/process',
     fields: data,
+    _debug_sig_string: sigString,
   }
 }
 

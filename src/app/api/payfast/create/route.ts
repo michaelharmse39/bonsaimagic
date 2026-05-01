@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       customer,
     })
 
+    console.log('[PayFast] _debug_sig_string:', payFastData._debug_sig_string)
     return NextResponse.json(payFastData)
   } catch (err) {
     console.error('PayFast create error:', err)
