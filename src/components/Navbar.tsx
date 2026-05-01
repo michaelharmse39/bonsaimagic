@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { ShoppingCart, Menu, X, Heart } from 'lucide-react'
-import { GiGardenShears } from 'react-icons/gi'
+import { GiGardeningShears } from 'react-icons/gi'
 import { useCart } from '@/store/cart'
 import { useWishlist } from '@/store/wishlist'
 import { useState } from 'react'
@@ -31,7 +31,7 @@ export default function Navbar({ user }: NavbarProps) {
   }
 
   const guestLinks = [
-    { label: 'My Account', href: '/login', icon: <GiGardenShears size={13} /> },
+    { label: 'My Account', href: '/login', icon: <GiGardeningShears size={13} /> },
   ]
 
   const authLinks = [
@@ -139,7 +139,7 @@ export default function Navbar({ user }: NavbarProps) {
               </>
             ) : (
               <Link href="/login" onClick={() => setMenuOpen(false)} className={cn(linkCls, 'inline-flex items-center gap-1')}>
-                <GiGardenShears size={13} />My Account
+                <GiGardeningShears size={13} />My Account
               </Link>
             )}
           </nav>
