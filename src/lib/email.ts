@@ -9,6 +9,36 @@ function getResend() {
   return new Resend(key)
 }
 
+export async function sendOtpEmail(to: string, otp: string, purpose: 'register' | 'reset') {
+  const resend = getResend()
+  if (!resend) {
+    console.log(`[Email] RESEND_API_KEY not set — skipping OTP email (code: ${otp})`)
+    return
+  }
+  const subject = purpose === 'register' ? 'Your Bonsai Magic verification code' : 'Reset your Bonsai Magic password'
+  const heading = purpose === 'register' ? 'Verify your email' : 'Reset your password'
+  const body = purpose === 'register'
+    ? 'Enter this code to complete your registration. It expires in 10 minutes.'
+    : 'Enter this code to reset your password. It expires in 10 minutes.'
+  try {
+    await resend.emails.send({
+      from: FROM,
+      to,
+      subject,
+      html: `
+        <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px">
+          <h1 style="font-size:22px;margin-bottom:8px">${heading}</h1>
+          <p style="color:#555;margin-bottom:24px">${body}</p>
+          <div style="font-size:40px;font-weight:bold;letter-spacing:10px;padding:20px;background:#f5f5f5;border-radius:8px;text-align:center;color:#15803d;margin-bottom:24px">${otp}</div>
+          <p style="color:#999;font-size:12px">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `,
+    })
+  } catch (err) {
+    console.error('[Email] Failed to send OTP email:', err)
+  }
+}
+
 export async function sendWelcomeEmail(to: string, firstName: string) {
   const resend = getResend()
   if (!resend) {

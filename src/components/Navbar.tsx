@@ -63,6 +63,9 @@ export default function Navbar({ user }: NavbarProps) {
             <div className="flex items-center gap-1 pr-3 mr-3 border-r border-border/60">
               {user ? (
                 <>
+                  <span className="text-[10px] tracking-[0.06em] text-muted-foreground px-2 whitespace-nowrap">
+                    Hi, {user.firstName}
+                  </span>
                   {authLinks.map(({ label, href }) => (
                     <Link key={label} href={href} className={linkCls}>{label}</Link>
                   ))}
@@ -132,6 +135,7 @@ export default function Navbar({ user }: NavbarProps) {
             <Link href="/shop" onClick={() => setMenuOpen(false)} className={linkCls}>Collection</Link>
             {user ? (
               <>
+                <span className={cn(linkCls, 'text-muted-foreground cursor-default')}>Hi, {user.firstName}</span>
                 {authLinks.map(({ label, href }) => (
                   <Link key={label} href={href} onClick={() => setMenuOpen(false)} className={linkCls}>{label}</Link>
                 ))}
