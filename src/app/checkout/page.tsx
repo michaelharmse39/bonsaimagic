@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useCart } from '@/store/cart'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -28,43 +28,6 @@ export default function CheckoutPage() {
   const [loadingQuote, setLoadingQuote] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [payFastData, setPayFastData] = useState<{ url: string; fields: Record<string, string> } | null>(null)
-  const streetRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY
-    if (!key || typeof window === 'undefined') return
-    if (document.getElementById('gplaces-script')) return
-
-    const script = document.createElement('script')
-    script.id = 'gplaces-script'
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`
-    script.async = true
-    script.onload = () => {
-      if (!streetRef.current || !(window as any).google) return
-      const ac = new (window as any).google.maps.places.Autocomplete(streetRef.current, {
-        componentRestrictions: { country: 'za' },
-        fields: ['address_components'],
-        types: ['address'],
-      })
-      ac.addListener('place_changed', () => {
-        const place = ac.getPlace()
-        const get = (type: string) =>
-          place.address_components?.find((c: any) => c.types.includes(type))?.long_name ?? ''
-        const short = (type: string) =>
-          place.address_components?.find((c: any) => c.types.includes(type))?.short_name ?? ''
-        setForm((prev) => ({
-          ...prev,
-          street: `${get('street_number')} ${get('route')}`.trim(),
-          suburb: get('sublocality_level_1') || get('neighborhood') || get('sublocality'),
-          city: get('locality') || get('administrative_area_level_2'),
-          province: get('administrative_area_level_1'),
-          postalCode: get('postal_code'),
-        }))
-        setShippingQuote(null)
-      })
-    }
-    document.head.appendChild(script)
-  }, [])
 
   function set(field: keyof ShippingForm, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -110,7 +73,6 @@ export default function CheckoutPage() {
           shippingCost: shippingQuote,
         }),
       })
-      if (!res.ok) throw new Error('Failed to create order')
       setPayFastData(await res.json())
     } catch {
       toast.error('Something went wrong. Please try again.')
@@ -137,10 +99,6 @@ export default function CheckoutPage() {
         onClick={() => { clearCart(); (document.getElementById('payfast-form') as HTMLFormElement)?.submit() }}>
         Proceed to Payment
       </Button>
-      <div style={{background:'yellow',color:'black',padding:'12px',maxWidth:'700px',wordBreak:'break-all',textAlign:'left'}}>
-        <strong style={{color:'red'}}>DEBUG — screenshot this:</strong>
-        <pre style={{whiteSpace:'pre-wrap',color:'black',fontSize:'11px'}}>{JSON.stringify(payFastData, null, 2)}</pre>
-      </div>
     </div>
   )
 
@@ -159,22 +117,22 @@ export default function CheckoutPage() {
             <CardHeader><CardTitle className="text-base">Contact Information</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
-                <Input required placeholder="First Name" autoComplete="given-name" value={form.firstName} onChange={(e) => set('firstName', e.target.value)} />
-                <Input required placeholder="Last Name" autoComplete="family-name" value={form.lastName} onChange={(e) => set('lastName', e.target.value)} />
+                <Input required placeholder="First Name" value={form.firstName} onChange={(e) => set('firstName', e.target.value)} />
+                <Input required placeholder="Last Name" value={form.lastName} onChange={(e) => set('lastName', e.target.value)} />
               </div>
-              <Input required type="email" placeholder="Email Address" autoComplete="email" value={form.email} onChange={(e) => set('email', e.target.value)} />
-              <Input required type="tel" placeholder="Phone Number" autoComplete="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
+              <Input required type="email" placeholder="Email Address" value={form.email} onChange={(e) => set('email', e.target.value)} />
+              <Input required type="tel" placeholder="Phone Number" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader><CardTitle className="text-base">Delivery Address</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <Input required placeholder="Street Address" autoComplete="address-line1" ref={streetRef} value={form.street} onChange={(e) => set('street', e.target.value)} />
-              <Input required placeholder="Suburb" autoComplete="address-level3" value={form.suburb} onChange={(e) => set('suburb', e.target.value)} />
+              <Input required placeholder="Street Address" value={form.street} onChange={(e) => set('street', e.target.value)} />
+              <Input required placeholder="Suburb" value={form.suburb} onChange={(e) => set('suburb', e.target.value)} />
               <div className="grid grid-cols-2 gap-3">
-                <Input required placeholder="City" autoComplete="address-level2" value={form.city} onChange={(e) => set('city', e.target.value)} />
-                <Input required placeholder="Postal Code" autoComplete="postal-code" value={form.postalCode} onChange={(e) => set('postalCode', e.target.value)} />
+                <Input required placeholder="City" value={form.city} onChange={(e) => set('city', e.target.value)} />
+                <Input required placeholder="Postal Code" value={form.postalCode} onChange={(e) => set('postalCode', e.target.value)} />
               </div>
               <Select value={form.province} onValueChange={(v) => v && set('province', v)}>
                 <SelectTrigger><SelectValue placeholder="Select Province" /></SelectTrigger>
