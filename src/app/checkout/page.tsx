@@ -1,9 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCart } from '@/store/cart'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Truck } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,8 +25,12 @@ export default function CheckoutPage() {
 
   const subtotalExVat = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const vatAmount = subtotalExVat * VAT_RATE
-  const shippingQuote = 0
-  const orderTotal = subtotalExVat + vatAmount + shippingQuote
+
+  const [shippingCost, setShippingCost] = useState(0)
+  const [shippingEta, setShippingEta] = useState('')
+  const [shippingLoading, setShippingLoading] = useState(false)
+
+  const orderTotal = subtotalExVat + vatAmount + shippingCost
 
   const [form, setForm] = useState<ShippingForm>({
     firstName: '', lastName: '', email: '', phone: '',
@@ -39,8 +43,48 @@ export default function CheckoutPage() {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
+  // Fetch Courier Guy quote when delivery address is filled
+  useEffect(() => {
+    if (!form.suburb || !form.city || !form.postalCode) {
+      setShippingCost(0)
+      setShippingEta('')
+      return
+    }
+
+    const timer = setTimeout(async () => {
+      setShippingLoading(true)
+      try {
+        const totalMass = Math.max(1, items.reduce((sum, i) => sum + i.quantity, 0))
+        const res = await fetch('/api/courier-guy/quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            deliver_suburb: form.suburb,
+            deliver_city: form.city,
+            deliver_postal_code: form.postalCode,
+            mass: totalMass,
+          }),
+        })
+        const data = await res.json()
+        setShippingCost(data.price ?? 85)
+        setShippingEta(data.estimated_days ? `${data.estimated_days} business days` : '')
+      } catch {
+        setShippingCost(85)
+        setShippingEta('')
+      } finally {
+        setShippingLoading(false)
+      }
+    }, 800)
+
+    return () => clearTimeout(timer)
+  }, [form.suburb, form.city, form.postalCode, items])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (shippingLoading) {
+      toast.error('Please wait for the shipping quote to load.')
+      return
+    }
     setSubmitting(true)
     try {
       const orderId = `BM-${Date.now()}`
@@ -58,7 +102,7 @@ export default function CheckoutPage() {
             quantity: i.quantity,
           })),
           shippingAddress: { street: form.street, suburb: form.suburb, city: form.city, province: form.province, postalCode: form.postalCode },
-          shippingCost: shippingQuote,
+          shippingCost,
         }),
       })
       setPayFastData(await res.json())
@@ -124,10 +168,20 @@ export default function CheckoutPage() {
                 <SelectTrigger><SelectValue placeholder="Select Province" /></SelectTrigger>
                 <SelectContent>{PROVINCES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
               </Select>
+              {shippingLoading && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Loader2 size={12} className="animate-spin" /> Getting shipping quote...
+                </p>
+              )}
+              {!shippingLoading && shippingCost > 0 && (
+                <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1.5">
+                  <Truck size={12} /> Courier Guy — R{shippingCost.toFixed(2)}{shippingEta ? ` · ${shippingEta}` : ''}
+                </p>
+              )}
             </CardContent>
           </Card>
 
-          <Button type="submit" disabled={submitting} className="w-full bg-green-700 hover:bg-green-800 text-white py-6 text-base gap-2">
+          <Button type="submit" disabled={submitting || shippingLoading} className="w-full bg-green-700 hover:bg-green-800 text-white py-6 text-base gap-2">
             {submitting ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : `Pay Securely with PayFast — R${orderTotal.toFixed(2)}`}
           </Button>
           <p className="text-xs text-muted-foreground text-center">🔒 Secured by PayFast. Your payment details are never stored on our servers.</p>
@@ -143,7 +197,7 @@ export default function CheckoutPage() {
                 const lineVat = lineExVat * VAT_RATE
                 return (
                   <div key={item.id} className="flex gap-3 items-start">
-                    <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                    <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-muted shrink-0">
                       {item.image && <Image src={item.image} alt={item.name} fill className="object-cover" />}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -169,8 +223,8 @@ export default function CheckoutPage() {
                   <span>R{vatAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Shipping</span>
-                  <span>Free</span>
+                  <span>Shipping {shippingLoading && <Loader2 size={10} className="inline animate-spin ml-1" />}</span>
+                  <span>{shippingCost > 0 ? `R${shippingCost.toFixed(2)}` : '—'}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-base pt-1">
