@@ -38,6 +38,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(payFastData)
   } catch (err) {
     console.error('PayFast create error:', err)
-    return NextResponse.json({ error: 'Failed to create order' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to create order', details: String(err) }, { status: 500 })
   }
 }
