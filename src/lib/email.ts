@@ -37,8 +37,9 @@ export async function sendOtpEmail(to: string, otp: string, purpose: 'register' 
         </div>
       `,
     })
-  } catch (err) {
-    console.error('[Email] Failed to send OTP email:', err)
+  } catch (err: unknown) {
+    const e = err as { statusCode?: number; message?: string; name?: string }
+    console.error('[Email] Resend error:', JSON.stringify({ statusCode: e?.statusCode, message: e?.message, name: e?.name }))
   }
 }
 
