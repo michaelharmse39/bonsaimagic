@@ -3,7 +3,7 @@ import { buildPayFastForm } from '@/lib/payfast'
 import { createClient } from 'next-sanity'
 
 const writeClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'placeholder',
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'c1o4kw27',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   apiVersion: '2024-01-01',
   token: process.env.SANITY_API_TOKEN,
@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { orderId, amount, customer, items, shippingAddress, shippingCost } = body
 
-    await writeClient.create({
+    // Save order — non-blocking so PayFast redirect still works if this fails
+    writeClient.create({
       _type: 'order',
       orderId,
       status: 'pending',
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
       subtotal: amount - shippingCost,
       shippingCost,
       total: amount,
-    })
+    }).catch((err) => console.error('Sanity order save failed:', err))
 
     const payFastData = buildPayFastForm({
       orderId,
