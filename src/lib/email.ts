@@ -1,16 +1,22 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
 // Once you verify bonsaimagic.co.za in Resend, change this to: orders@bonsaimagic.co.za
 const FROM = 'Bonsai Magic <onboarding@resend.dev>'
 
+function getResend() {
+  const key = process.env.RESEND_API_KEY
+  if (!key) return null
+  return new Resend(key)
+}
+
 export async function sendWelcomeEmail(to: string, firstName: string) {
-  if (!process.env.RESEND_API_KEY) {
+  const resend = getResend()
+  if (!resend) {
     console.log('[Email] RESEND_API_KEY not set — skipping welcome email')
     return
   }
   try {
-    await resend.emails.send({
+    await resend!.emails.send({
       from: FROM,
       to,
       subject: 'Welcome to Bonsai Magic',
@@ -38,7 +44,8 @@ export async function sendOrderConfirmationEmail(
   items: { name: string; quantity: number; price: number }[],
   total: number
 ) {
-  if (!process.env.RESEND_API_KEY) {
+  const resend = getResend()
+  if (!resend) {
     console.log('[Email] RESEND_API_KEY not set — skipping order confirmation')
     return
   }
@@ -54,7 +61,7 @@ export async function sendOrderConfirmationEmail(
       )
       .join('')
 
-    await resend.emails.send({
+    await resend!.emails.send({
       from: FROM,
       to,
       subject: `Order Confirmed — ${orderId}`,
