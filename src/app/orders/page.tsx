@@ -34,6 +34,7 @@ type OrderItem = {
 }
 
 type Order = {
+  _id: string
   orderId: string
   status: string
   _createdAt: string
@@ -50,7 +51,7 @@ export default async function OrdersPage() {
 
   const orders: Order[] = await client.fetch(
     `*[_type == "order" && customer.email == $email] | order(_createdAt desc) {
-      orderId, status, _createdAt, total,
+      _id, orderId, status, _createdAt, total,
       items[]{
         name, quantity, price, productId,
         "image": *[_type == "product" && _id == ^.productId][0].images[0]
@@ -80,7 +81,7 @@ export default async function OrdersPage() {
             const extra = totalItems - images.length
 
             return (
-              <div key={order.orderId} className="border border-border rounded-sm overflow-hidden bg-card flex flex-col">
+              <div key={order._id} className="border border-border rounded-sm overflow-hidden bg-card flex flex-col">
                 {/* Status + date */}
                 <div className="px-4 pt-4 pb-3 flex items-center justify-between">
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${STATUS_STYLES[order.status] || 'bg-muted text-muted-foreground'}`}>
