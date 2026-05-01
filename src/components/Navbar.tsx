@@ -23,8 +23,10 @@ const linkCls = 'px-2 py-1 text-[10px] tracking-[0.08em] uppercase font-medium t
 const iconCls = 'relative p-2 rounded-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors duration-150'
 
 export default function Navbar() {
-  const { itemCount, openCart } = useCart()
-  const { count: wishlistCount } = useWishlist()
+  const { items, openCart } = useCart()
+  const { items: wishlistItems } = useWishlist()
+  const itemCount = items.reduce((sum, i) => sum + i.quantity, 0)
+  const wishlistCount = wishlistItems.length
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -57,9 +59,8 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Icons */}
+            {/* Icons: wishlist | cart | theme toggle */}
             <div className="flex items-center gap-0.5">
-              <ThemeToggle />
               <Link href="/wishlist" className={iconCls} aria-label="Wishlist">
                 <Heart size={16} />
                 {wishlistCount > 0 && (
@@ -76,14 +77,19 @@ export default function Navbar() {
                   </span>
                 )}
               </button>
+              <ThemeToggle />
             </div>
           </div>
 
           {/* Mobile: just icons + hamburger */}
           <div className="flex md:hidden items-center gap-0.5 ml-auto">
-            <ThemeToggle />
             <Link href="/wishlist" className={iconCls} aria-label="Wishlist">
               <Heart size={16} />
+              {wishlistCount > 0 && (
+                <span className="absolute top-0.5 right-0.5 bg-rose-500 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
             <button onClick={openCart} className={iconCls} aria-label="Open cart">
               <ShoppingCart size={16} />
@@ -93,6 +99,7 @@ export default function Navbar() {
                 </span>
               )}
             </button>
+            <ThemeToggle />
             <button className={cn(iconCls)} onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu">
               {menuOpen ? <X size={16} /> : <Menu size={16} />}
             </button>

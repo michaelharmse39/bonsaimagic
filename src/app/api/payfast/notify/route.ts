@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyITN } from '@/lib/payfast'
 import { createClient } from 'next-sanity'
+import { sendOrderConfirmationEmail } from '@/lib/email'
 
 const writeClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'placeholder',
@@ -21,15 +22,26 @@ export async function POST(req: NextRequest) {
 
     if (params.payment_status === 'COMPLETE') {
       const orderId = params.m_payment_id
-      const orders = await writeClient.fetch(
+      const order = await writeClient.fetch(
         `*[_type == "order" && orderId == $orderId][0]`,
         { orderId }
       )
-      if (orders?._id) {
-        await writeClient.patch(orders._id).set({
+      if (order?._id) {
+        await writeClient.patch(order._id).set({
           status: 'paid',
           payfastPaymentId: params.pf_payment_id,
         }).commit()
+
+        // Send order confirmation email
+        if (order.customer?.email) {
+          sendOrderConfirmationEmail(
+            order.customer.email,
+            order.customer.firstName || 'Customer',
+            orderId,
+            order.items || [],
+            order.total || 0
+          ).catch(console.error)
+        }
       }
     }
 
