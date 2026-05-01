@@ -53,7 +53,7 @@ export default async function AccountPage() {
 
   const orders = await client.fetch(
     `*[_type == "order" && customer.email == $email] | order(_createdAt desc) {
-      orderId, status, _createdAt, total, subtotal, shippingCost,
+      _id, orderId, status, _createdAt, total, subtotal, shippingCost,
       customer, shippingAddress,
       items[]{ name, quantity, price }
     }`,
@@ -107,13 +107,13 @@ export default async function AccountPage() {
         ) : (
           <div className="space-y-4">
             {orders.map((order: {
-              orderId: string; status: string; _createdAt: string; total: number
+              _id: string; orderId: string; status: string; _createdAt: string; total: number
               subtotal: number; shippingCost: number
               customer: { firstName: string; lastName: string; email: string; phone: string }
               shippingAddress: { street: string; suburb: string; city: string; province: string; postalCode: string }
               items: { name: string; quantity: number; price: number }[]
             }) => (
-              <Card key={order.orderId}>
+              <Card key={order._id}>
                 <CardHeader className="pb-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
