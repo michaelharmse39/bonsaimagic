@@ -9,10 +9,10 @@ import { cn } from '@/lib/utils'
 
 const SHOP_LINKS = [
   { label: 'Collection', href: '/shop' },
-  { label: 'Track Order', href: '/track' },
 ]
 
 const ACCOUNT_LINKS = [
+  { label: 'Track Order', href: '/track' },
   { label: 'Login', href: '/login' },
   { label: 'Register', href: '/register' },
   { label: 'Orders', href: '/orders' },
