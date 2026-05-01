@@ -137,12 +137,10 @@ export default function CheckoutPage() {
         onClick={() => { clearCart(); (document.getElementById('payfast-form') as HTMLFormElement)?.submit() }}>
         Proceed to Payment
       </Button>
-      {(payFastData as any)._debug_sig_string && (
-        <div className="max-w-xl w-full text-left bg-gray-100 dark:bg-gray-900 rounded p-3 text-xs break-all">
-          <p className="font-bold mb-1 text-red-600">DEBUG (remove before launch):</p>
-          <p className="select-all">{(payFastData as any)._debug_sig_string}</p>
-        </div>
-      )}
+      <div className="max-w-xl w-full text-left bg-gray-100 dark:bg-gray-900 rounded p-3 text-xs break-all">
+        <p className="font-bold mb-1 text-red-600">DEBUG — copy this:</p>
+        <pre className="select-all whitespace-pre-wrap">{JSON.stringify(payFastData, null, 2)}</pre>
+      </div>
     </div>
   )
 
