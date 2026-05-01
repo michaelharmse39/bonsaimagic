@@ -73,6 +73,7 @@ export default function CheckoutPage() {
           shippingCost: shippingQuote,
         }),
       })
+      if (!res.ok) throw new Error('Failed to create order')
       setPayFastData(await res.json())
     } catch {
       toast.error('Something went wrong. Please try again.')
