@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 
 // Once you verify bonsaimagic.co.za in Resend, change this to: orders@bonsaimagic.co.za
-const FROM = 'Bonsai Magic <onboarding@resend.dev>'
+const FROM = 'Bonsai Magic <noreply@bonsaimagic.co.za>'
 
 function getResend() {
   const key = process.env.RESEND_API_KEY
