@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const PROTECTED_PATHS = ['/account', '/orders', '/profile', '/track']
 
+const SITE_AUTH_BYPASS = [
+  '/enter', '/api/enter',
+  '/api/payfast',
+  '/studio',
+]
+
 const PUBLIC_PATHS = [
   '/login', '/register',
   '/api/auth',
@@ -13,6 +19,19 @@ const PUBLIC_PATHS = [
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+
+  // Site-wide password gate (only active when SITE_PASSWORD is configured)
+  if (process.env.SITE_PASSWORD) {
+    const bypass = SITE_AUTH_BYPASS.some((p) => pathname.startsWith(p))
+    if (!bypass) {
+      const siteAuth = req.cookies.get('bm_site_auth')?.value
+      if (!siteAuth) {
+        const url = req.nextUrl.clone()
+        url.pathname = '/enter'
+        return NextResponse.redirect(url)
+      }
+    }
+  }
 
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return NextResponse.next()
 
