@@ -87,7 +87,18 @@ export function buildPayFastForm(orderData: {
 
 export function verifyITN(params: Record<string, string>): boolean {
   const receivedSignature = params.signature
-  const { signature: _, ...dataWithoutSignature } = params
-  const calculatedSignature = generateSignature(dataWithoutSignature, process.env.PAYFAST_PASSPHRASE)
+  const isSandbox = process.env.PAYFAST_SANDBOX === 'true'
+  const passphrase = isSandbox ? undefined : (process.env.PAYFAST_PASSPHRASE || undefined)
+
+  // Do NOT sort — use the exact order PayFast sends the fields
+  const queryString = Object.entries(params)
+    .filter(([k, v]) => k !== 'signature' && v !== '' && v !== undefined && v !== null)
+    .map(([k, v]) => `${k}=${pfEncode(String(v).trim())}`)
+    .join('&')
+
+  const str = passphrase ? `${queryString}&passphrase=${pfEncode(passphrase.trim())}` : queryString
+  const calculatedSignature = crypto.createHash('md5').update(str).digest('hex')
+
+  console.log('[PayFast ITN] received:', receivedSignature, 'calculated:', calculatedSignature)
   return receivedSignature === calculatedSignature
 }
