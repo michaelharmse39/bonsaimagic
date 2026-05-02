@@ -42,6 +42,7 @@ export default function CheckoutPage() {
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [payFastData, setPayFastData] = useState<{ url: string; fields: Record<string, string> } | null>(null)
+  const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'collect'>('delivery')
 
   function set(field: keyof ShippingForm, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -90,7 +91,7 @@ export default function CheckoutPage() {
 
   // Fetch Courier Guy quote when delivery address is filled
   useEffect(() => {
-    if (!form.suburb || !form.city || !form.postalCode) {
+    if (deliveryMethod === 'collect' || !form.suburb || !form.city || !form.postalCode) {
       setShippingCost(0)
       setShippingEta('')
       return
@@ -122,11 +123,11 @@ export default function CheckoutPage() {
     }, 800)
 
     return () => clearTimeout(timer)
-  }, [form.suburb, form.city, form.postalCode, items])
+  }, [form.suburb, form.city, form.postalCode, items, deliveryMethod])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (shippingLoading) {
+    if (deliveryMethod === 'delivery' && shippingLoading) {
       toast.error('Please wait for the shipping quote to load.')
       return
     }
@@ -201,8 +202,31 @@ export default function CheckoutPage() {
           </Card>
 
           <Card>
-            <CardHeader><CardTitle className="text-base">Delivery Address</CardTitle></CardHeader>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base">Delivery</CardTitle>
+                <div className="flex rounded-sm overflow-hidden border border-border text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod('delivery')}
+                    className={`px-3 py-1.5 transition-colors ${deliveryMethod === 'delivery' ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Ship to me
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeliveryMethod('collect')}
+                    className={`px-3 py-1.5 transition-colors ${deliveryMethod === 'collect' ? 'bg-foreground text-background' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Collect in store
+                  </button>
+                </div>
+              </div>
+            </CardHeader>
             <CardContent className="space-y-3">
+            {deliveryMethod === 'collect' ? (
+              <p className="text-sm text-muted-foreground py-2">You&apos;ll collect your order from our store — no shipping fee. We&apos;ll contact you when it&apos;s ready.</p>
+            ) : (<>
               {savedAddresses.length > 1 && (
                 <div className="flex flex-wrap gap-2 pb-1">
                   {savedAddresses.map((a) => (
@@ -247,10 +271,11 @@ export default function CheckoutPage() {
                   <Truck size={12} /> Courier Guy — R{shippingCost.toFixed(2)}{shippingEta ? ` · ${shippingEta}` : ''}
                 </p>
               )}
+            </>)}
             </CardContent>
           </Card>
 
-          <Button type="submit" disabled={submitting || shippingLoading} className="w-full bg-green-700 hover:bg-green-800 text-white py-6 text-base gap-2">
+          <Button type="submit" disabled={submitting || (deliveryMethod === 'delivery' && shippingLoading)} className="w-full bg-green-700 hover:bg-green-800 text-white py-6 text-base gap-2">
             {submitting ? <><Loader2 size={18} className="animate-spin" /> Processing...</> : `Pay Securely with PayFast — R${orderTotal.toFixed(2)}`}
           </Button>
           <p className="text-xs text-muted-foreground text-center">🔒 Secured by PayFast. Your payment details are never stored on our servers.</p>
@@ -293,7 +318,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Shipping {shippingLoading && <Loader2 size={10} className="inline animate-spin ml-1" />}</span>
-                  <span>{shippingCost > 0 ? `R${shippingCost.toFixed(2)}` : '—'}</span>
+                  <span>{deliveryMethod === 'collect' ? 'Free' : shippingCost > 0 ? `R${shippingCost.toFixed(2)}` : '—'}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold text-base pt-1">
