@@ -4,16 +4,23 @@ import Link from 'next/link'
 import { ArrowLeft, Search } from 'lucide-react'
 
 interface Order {
-  orderId: string
+  order_id: string
   status: string
-  customer: { firstName: string; lastName: string; email: string; phone?: string }
-  items: Array<{ name: string; price: number; quantity: number }>
-  shippingAddress: { street: string; suburb: string; city: string; province: string; postalCode: string }
+  customer_first_name: string
+  customer_last_name: string
+  customer_email: string
+  customer_phone?: string
+  order_items: Array<{ name: string; price: number; quantity: number }>
+  shipping_street: string
+  shipping_suburb: string
+  shipping_city: string
+  shipping_province: string
+  shipping_postal_code: string
   subtotal: number
-  shippingCost: number
+  shipping_cost: number
   total: number
-  _createdAt: string
-  courierGuyTrackingId?: string
+  created_at: string
+  courier_guy_tracking_id?: string
 }
 
 const STEPS = ['Pending', 'Confirmed', 'Shipped', 'Delivered']
@@ -112,9 +119,9 @@ export default function TrackPage() {
           <div className="bg-background p-6">
             <div className="flex items-start justify-between mb-8">
               <div>
-                <p className="jp-label mb-1">Order {order.orderId}</p>
+                <p className="jp-label mb-1">Order {order.order_id}</p>
                 <p className="text-xs text-muted-foreground">
-                  Placed {new Date(order._createdAt).toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  Placed {new Date(order.created_at).toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
               </div>
               <span className="jp-label text-primary">{STATUS_LABEL[order.status] ?? order.status}</span>
@@ -136,9 +143,9 @@ export default function TrackPage() {
               />
             </div>
 
-            {order.courierGuyTrackingId && (
+            {order.courier_guy_tracking_id && (
               <p className="mt-6 text-xs text-muted-foreground">
-                Courier Guy tracking: <span className="text-foreground font-medium">{order.courierGuyTrackingId}</span>
+                Courier Guy tracking: <span className="text-foreground font-medium">{order.courier_guy_tracking_id}</span>
               </p>
             )}
           </div>
@@ -147,7 +154,7 @@ export default function TrackPage() {
           <div className="bg-background p-6">
             <p className="jp-label mb-5">Items Ordered</p>
             <div className="space-y-3">
-              {order.items.map((item, i) => (
+              {order.order_items?.map((item, i) => (
                 <div key={i} className="flex justify-between items-center text-sm">
                   <span className="text-foreground">
                     {item.name}
@@ -158,13 +165,13 @@ export default function TrackPage() {
               ))}
               <div className="border-t border-border/40 pt-4 space-y-1.5 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Subtotal</span><span>R{order.subtotal.toFixed(2)}</span>
+                  <span>Subtotal</span><span>R{order.subtotal?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Shipping</span><span>R{order.shippingCost.toFixed(2)}</span>
+                  <span>Shipping</span><span>R{order.shipping_cost?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-[family-name:var(--font-heading)] text-base pt-1">
-                  <span>Total</span><span>R{order.total.toFixed(2)}</span>
+                  <span>Total</span><span>R{order.total?.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -174,10 +181,10 @@ export default function TrackPage() {
           <div className="bg-background p-6">
             <p className="jp-label mb-4">Delivery Address</p>
             <address className="text-sm text-muted-foreground not-italic space-y-1 leading-relaxed">
-              <p className="text-foreground">{order.customer.firstName} {order.customer.lastName}</p>
-              <p>{order.shippingAddress.street}</p>
-              <p>{order.shippingAddress.suburb}, {order.shippingAddress.city}</p>
-              <p>{order.shippingAddress.province}, {order.shippingAddress.postalCode}</p>
+              <p className="text-foreground">{order.customer_first_name} {order.customer_last_name}</p>
+              <p>{order.shipping_street}</p>
+              <p>{order.shipping_suburb}, {order.shipping_city}</p>
+              <p>{order.shipping_province}, {order.shipping_postal_code}</p>
             </address>
           </div>
         </div>
