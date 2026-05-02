@@ -45,7 +45,7 @@ export function buildPayFastForm(orderData: {
   itemName: string
   customer: { firstName: string; lastName: string; email: string }
 }): { url: string; fields: Record<string, string>; _debug_sig_string: string } {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://bonsaimagic.co.za'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.bonsaimagic.co.za'
 
   const isSandbox = process.env.PAYFAST_SANDBOX === 'true'
   const merchantId = isSandbox ? '10043594' : (process.env.PAYFAST_MERCHANT_ID || '')
@@ -73,6 +73,7 @@ export function buildPayFastForm(orderData: {
     .map(([k, v]) => `${k}=${pfEncode(String(v).trim())}`)
     .join('&')
 
+  console.log('[PayFast] notify_url:', data.notify_url)
   const signature = generateSignature(data, passphrase)
   data.signature = signature
 
