@@ -31,7 +31,7 @@ export default async function OrdersPage() {
     .from('orders')
     .select('id, order_id, status, created_at, total, order_items(product_id, name, quantity, price)')
     .eq('customer_email', user.email)
-    .neq('status', 'pending')
+    .not('payfast_payment_id', 'is', null)
     .order('created_at', { ascending: false })
 
   // Batch-fetch product images from Sanity
