@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { FcGoogle } from 'react-icons/fc'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -68,12 +69,11 @@ export default function LoginPage() {
             value={form.email}
             onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
           />
-          <Input
-            type="password"
+          <PasswordInput
             placeholder="Password"
             required
             value={form.password}
-            onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+            onChange={(v) => setForm((p) => ({ ...p, password: v }))}
           />
           <Button className="w-full rounded-none" type="submit" disabled={loading}>
             {loading ? <><Loader2 size={16} className="animate-spin mr-2" />Signing In...</> : 'Sign In with Email'}

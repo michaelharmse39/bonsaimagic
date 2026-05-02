@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Loader2, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function ForgotPasswordPage() {
   const router = useRouter()
@@ -99,19 +100,18 @@ export default function ForgotPasswordPage() {
               required
               autoFocus
             />
-            <Input
-              type="password"
+            <PasswordInput
               placeholder="New password (min. 6 characters)"
               required
+              showStrength
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={setNewPassword}
             />
-            <Input
-              type="password"
+            <PasswordInput
               placeholder="Confirm new password"
               required
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={setConfirmPassword}
             />
             <Button className="w-full rounded-none" type="submit" disabled={loading || otp.length < 6}>
               {loading

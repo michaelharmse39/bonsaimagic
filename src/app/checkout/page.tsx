@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
+type SavedAddress = { id: string; street: string; suburb: string | null; city: string; province: string | null; postal_code: string | null; is_default: boolean }
+
 const VAT_RATE = 0.15
 
 interface ShippingForm {
@@ -37,11 +39,54 @@ export default function CheckoutPage() {
     street: '', suburb: '', city: '', province: 'Gauteng', postalCode: '',
   })
   const [submitting, setSubmitting] = useState(false)
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [payFastData, setPayFastData] = useState<{ url: string; fields: Record<string, string> } | null>(null)
 
   function set(field: keyof ShippingForm, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
+
+  // Pre-fill from saved profile + default address
+  useEffect(() => {
+    async function prefill() {
+      try {
+        const [profileRes, addrRes] = await Promise.all([
+          fetch('/api/profile'),
+          fetch('/api/addresses'),
+        ])
+        if (profileRes.ok) {
+          const p = await profileRes.json()
+          setForm((prev) => ({
+            ...prev,
+            firstName: prev.firstName || p.first_name || '',
+            lastName: prev.lastName || p.last_name || '',
+            email: prev.email || p.email || '',
+            phone: prev.phone || p.phone || '',
+          }))
+        }
+        if (addrRes.ok) {
+          const addrs: SavedAddress[] = await addrRes.json()
+          setSavedAddresses(addrs)
+          const def = addrs.find((a) => a.is_default) || addrs[0]
+          if (def) {
+            setSelectedAddressId(def.id)
+            setForm((prev) => ({
+              ...prev,
+              street: prev.street || def.street || '',
+              suburb: prev.suburb || def.suburb || '',
+              city: prev.city || def.city || '',
+              province: prev.province || def.province || 'Gauteng',
+              postalCode: prev.postalCode || def.postal_code || '',
+            }))
+          }
+        }
+      } catch {
+        // user not logged in or no addresses — they fill manually
+      }
+    }
+    prefill()
+  }, [])
 
   // Fetch Courier Guy quote when delivery address is filled
   useEffect(() => {
@@ -158,6 +203,30 @@ export default function CheckoutPage() {
           <Card>
             <CardHeader><CardTitle className="text-base">Delivery Address</CardTitle></CardHeader>
             <CardContent className="space-y-3">
+              {savedAddresses.length > 1 && (
+                <div className="flex flex-wrap gap-2 pb-1">
+                  {savedAddresses.map((a) => (
+                    <button
+                      key={a.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedAddressId(a.id)
+                        setForm((prev) => ({
+                          ...prev,
+                          street: a.street || '',
+                          suburb: a.suburb || '',
+                          city: a.city || '',
+                          province: a.province || 'Gauteng',
+                          postalCode: a.postal_code || '',
+                        }))
+                      }}
+                      className={`text-xs px-3 py-1.5 border transition-colors ${selectedAddressId === a.id ? 'border-foreground bg-foreground text-background' : 'border-border text-muted-foreground hover:border-foreground/50'}`}
+                    >
+                      {a.street}{a.suburb ? `, ${a.suburb}` : ''}
+                    </button>
+                  ))}
+                </div>
+              )}
               <Input required placeholder="Street Address" value={form.street} onChange={(e) => set('street', e.target.value)} />
               <Input required placeholder="Suburb" value={form.suburb} onChange={(e) => set('suburb', e.target.value)} />
               <div className="grid grid-cols-2 gap-3">

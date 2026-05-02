@@ -5,6 +5,21 @@ import { supabase } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
 
+export async function GET() {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(SESSION_COOKIE)?.value
+  const user = token ? await verifyToken(token) : null
+  if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('first_name, last_name, email, phone')
+    .eq('email', user.email)
+    .single()
+
+  return NextResponse.json(data ?? { first_name: user.firstName, last_name: user.lastName, email: user.email, phone: null })
+}
+
 export async function PATCH(req: NextRequest) {
   const cookieStore = await cookies()
   const token = cookieStore.get(SESSION_COOKIE)?.value

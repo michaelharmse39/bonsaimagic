@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Loader2, ArrowLeft } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { FcGoogle } from 'react-icons/fc'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -182,12 +183,12 @@ export default function RegisterPage() {
             value={form.email}
             onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
           />
-          <Input
-            type="password"
+          <PasswordInput
             placeholder="Password (min. 6 characters)"
             required
+            showStrength
             value={form.password}
-            onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+            onChange={(v) => setForm((p) => ({ ...p, password: v }))}
           />
           <Button className="w-full rounded-none" type="submit" disabled={loading}>
             {loading

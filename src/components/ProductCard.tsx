@@ -1,8 +1,9 @@
 'use client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, Heart } from 'lucide-react'
 import { useCart } from '@/store/cart'
+import { useWishlist } from '@/store/wishlist'
 import { urlFor } from '@/lib/sanity'
 import toast from 'react-hot-toast'
 
@@ -20,6 +21,7 @@ interface Product {
 
 export default function ProductCard({ product }: { product: Product }) {
   const { addItem, openCart } = useCart()
+  const { addItem: wishAdd, removeItem: wishRemove, hasItem: wishHas } = useWishlist()
 
   const imageUrl = product.image
     ? urlFor(product.image).width(600).height(700).fit('crop').url()
@@ -39,6 +41,19 @@ export default function ProductCard({ product }: { product: Product }) {
     toast.success(`${product.name} added`)
     openCart()
   }
+
+  function handleWishlist(e: React.MouseEvent) {
+    e.preventDefault()
+    if (wishHas(product._id)) {
+      wishRemove(product._id)
+      toast.success('Removed from wishlist')
+    } else {
+      wishAdd({ id: product._id, name: product.name, price: product.price, image: imageUrl ?? '', slug: product.slug.current })
+      toast.success('Added to wishlist')
+    }
+  }
+
+  const inWishlist = wishHas(product._id)
 
   const outOfStock = product.stock <= 0
   const onSale = product.comparePrice && product.comparePrice > product.price
@@ -69,6 +84,14 @@ export default function ProductCard({ product }: { product: Product }) {
             Sale
           </span>
         )}
+        {/* Wishlist heart */}
+        <button
+          onClick={handleWishlist}
+          className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center transition-all duration-200 border border-border/50 ${inWishlist ? 'bg-background/90 opacity-100' : 'bg-background/80 opacity-0 group-hover:opacity-100'}`}
+          aria-label={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+        >
+          <Heart size={14} className={inWishlist ? 'fill-red-500 text-red-500' : 'text-foreground'} />
+        </button>
         {/* Add button on hover */}
         {!outOfStock && (
           <button
