@@ -22,3 +22,7 @@ export const PRODUCTS_BY_CATEGORY_QUERY = `*[_type == "product" && category->slu
   _id, name, slug, price, comparePrice, stock, shortDescription, weight,
   "image": images[0]
 }`
+
+export const BANNERS_QUERY = `*[_type == "banner" && active == true] | order(order asc) {
+  _id, title, subtitle, ctaText, ctaLink, image, order
+}`
