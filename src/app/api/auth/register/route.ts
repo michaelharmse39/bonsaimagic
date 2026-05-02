@@ -1,20 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from 'next-sanity'
 import { jwtVerify } from 'jose'
 import { hashPassword, signToken, SESSION_COOKIE, COOKIE_OPTS } from '@/lib/auth'
 import { sendWelcomeEmail } from '@/lib/email'
+import { supabase } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
 
 const secret = () => new TextEncoder().encode(process.env.AUTH_SECRET || 'bm-fallback-secret-change-in-prod')
-
-const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'c1o4kw27',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  apiVersion: '2024-01-01',
-  token: process.env.SANITY_API_TOKEN,
-  useCdn: false,
-})
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,16 +31,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid verification code' }, { status: 400 })
     }
 
-    const existing = await client.fetch(`*[_type == "user" && email == $email][0]._id`, { email })
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .single()
+
     if (existing) {
       return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 })
     }
 
     const passwordHash = await hashPassword(password)
-    const user = await client.create({ _type: 'user', firstName, lastName, email, passwordHash })
+    const { data: user, error } = await supabase
+      .from('profiles')
+      .insert({ email, first_name: firstName, last_name: lastName, password_hash: passwordHash })
+      .select('id')
+      .single()
 
-    const token = await signToken({ userId: user._id, email, firstName, lastName })
+    if (error || !user) {
+      throw error ?? new Error('Failed to create user')
+    }
 
+    const token = await signToken({ userId: user.id, email, firstName, lastName })
     sendWelcomeEmail(email, firstName).catch(console.error)
 
     const res = NextResponse.json({ success: true })

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { client } from '@/lib/sanity'
+import { supabase } from '@/lib/supabase'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -10,12 +10,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
   }
 
-  const order = await client
-    .fetch(
-      `*[_type == "order" && orderId == $orderId && lower(customer.email) == $email][0]`,
-      { orderId, email }
-    )
-    .catch(() => null)
+  const { data: order } = await supabase
+    .from('orders')
+    .select(`
+      id, order_id, status, created_at,
+      customer_email, customer_first_name, customer_last_name, customer_phone,
+      shipping_street, shipping_suburb, shipping_city, shipping_province, shipping_postal_code,
+      subtotal, shipping_cost, total,
+      courier_guy_tracking_id, notes,
+      order_items(product_id, name, price, quantity)
+    `)
+    .eq('order_id', orderId)
+    .eq('customer_email', email)
+    .single()
 
   if (!order) {
     return NextResponse.json({ error: 'Order not found' }, { status: 404 })

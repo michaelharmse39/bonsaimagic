@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from 'next-sanity'
 import { verifyPassword, signToken, SESSION_COOKIE, COOKIE_OPTS } from '@/lib/auth'
+import { supabase } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
-
-const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'c1o4kw27',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  apiVersion: '2024-01-01',
-  token: process.env.SANITY_API_TOKEN,
-  useCdn: false,
-})
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,20 +12,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
     }
 
-    const user = await client.fetch(
-      `*[_type == "user" && email == $email][0]{ _id, email, firstName, lastName, passwordHash }`,
-      { email }
-    )
+    const { data: user } = await supabase
+      .from('profiles')
+      .select('id, email, first_name, last_name, password_hash')
+      .eq('email', email)
+      .single()
 
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
+    if (!user || !(await verifyPassword(password, user.password_hash))) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
     }
 
     const token = await signToken({
-      userId: user._id,
+      userId: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      firstName: user.first_name || '',
+      lastName: user.last_name || '',
     })
 
     const res = NextResponse.json({ success: true })

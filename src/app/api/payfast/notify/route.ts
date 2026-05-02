@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyITN } from '@/lib/payfast'
-import { createClient } from 'next-sanity'
 import { sendOrderConfirmationEmail } from '@/lib/email'
+import { supabase } from '@/lib/supabase'
 
-const writeClient = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'placeholder',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  apiVersion: '2024-01-01',
-  token: process.env.SANITY_API_TOKEN,
-  useCdn: false,
-})
+export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,23 +16,29 @@ export async function POST(req: NextRequest) {
 
     if (params.payment_status === 'COMPLETE') {
       const orderId = params.m_payment_id
-      const order = await writeClient.fetch(
-        `*[_type == "order" && orderId == $orderId][0]`,
-        { orderId }
-      )
-      if (order?._id) {
-        await writeClient.patch(order._id).set({
-          status: 'paid',
-          payfastPaymentId: params.pf_payment_id,
-        }).commit()
 
-        // Send order confirmation email
-        if (order.customer?.email) {
+      const { data: order } = await supabase
+        .from('orders')
+        .select('id, customer_email, customer_first_name, total, order_items(name, quantity, price)')
+        .eq('order_id', orderId)
+        .single()
+
+      if (order?.id) {
+        await supabase
+          .from('orders')
+          .update({
+            status: 'paid',
+            payfast_payment_id: params.pf_payment_id,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', order.id)
+
+        if (order.customer_email) {
           sendOrderConfirmationEmail(
-            order.customer.email,
-            order.customer.firstName || 'Customer',
+            order.customer_email,
+            order.customer_first_name || 'Customer',
             orderId,
-            order.items || [],
+            order.order_items || [],
             order.total || 0
           ).catch(console.error)
         }

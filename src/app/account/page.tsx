@@ -1,19 +1,13 @@
 import { cookies } from 'next/headers'
 import { verifyToken } from '@/lib/auth'
-import { createClient } from 'next-sanity'
+import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { ArrowRight, Package, MapPin, User } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import LogoutButton from './LogoutButton'
 
-const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'c1o4kw27',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  apiVersion: '2024-01-01',
-  token: process.env.SANITY_API_TOKEN,
-  useCdn: false,
-})
+export const dynamic = 'force-dynamic'
 
 const STATUS_STYLES: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -51,14 +45,15 @@ export default async function AccountPage() {
     )
   }
 
-  const orders = await client.fetch(
-    `*[_type == "order" && customer.email == $email] | order(_createdAt desc) {
-      _id, orderId, status, _createdAt, total, subtotal, shippingCost,
-      customer, shippingAddress,
-      items[]{ name, quantity, price }
-    }`,
-    { email: user.email }
-  )
+  const { data: orders } = await supabase
+    .from('orders')
+    .select(`
+      id, order_id, status, created_at, total, subtotal, shipping_cost,
+      shipping_street, shipping_suburb, shipping_city, shipping_province, shipping_postal_code,
+      order_items(name, quantity, price)
+    `)
+    .eq('customer_email', user.email)
+    .order('created_at', { ascending: false })
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -72,7 +67,6 @@ export default async function AccountPage() {
         <LogoutButton />
       </div>
 
-      {/* Profile Details */}
       <Card className="mb-8">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -91,13 +85,12 @@ export default async function AccountPage() {
         </CardContent>
       </Card>
 
-      {/* Order History */}
       <div>
         <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
           <Package size={18} /> Order History
         </h2>
 
-        {orders.length === 0 ? (
+        {!orders?.length ? (
           <Card>
             <CardContent className="py-12 text-center text-muted-foreground">
               <p>No orders yet.</p>
@@ -106,20 +99,14 @@ export default async function AccountPage() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {orders.map((order: {
-              _id: string; orderId: string; status: string; _createdAt: string; total: number
-              subtotal: number; shippingCost: number
-              customer: { firstName: string; lastName: string; email: string; phone: string }
-              shippingAddress: { street: string; suburb: string; city: string; province: string; postalCode: string }
-              items: { name: string; quantity: number; price: number }[]
-            }) => (
-              <Card key={order._id}>
+            {orders.map((order) => (
+              <Card key={order.id}>
                 <CardHeader className="pb-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="font-semibold text-sm">{order.orderId}</p>
+                      <p className="font-semibold text-sm">{order.order_id}</p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(order._createdAt).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {new Date(order.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                     </div>
                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${STATUS_STYLES[order.status] || 'bg-muted text-muted-foreground'}`}>
@@ -128,9 +115,8 @@ export default async function AccountPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Items */}
                   <div className="space-y-2">
-                    {order.items?.map((item, idx) => (
+                    {(order.order_items as { name: string; quantity: number; price: number }[])?.map((item, idx) => (
                       <div key={idx} className="flex justify-between text-sm">
                         <span>{item.name} <span className="text-muted-foreground">× {item.quantity}</span></span>
                         <span className="font-medium">R{(item.price * item.quantity).toFixed(2)}</span>
@@ -142,15 +128,13 @@ export default async function AccountPage() {
                     <span>Total</span>
                     <span className="text-green-600 dark:text-green-400">R{order.total?.toFixed(2)}</span>
                   </div>
-
-                  {/* Shipping address */}
-                  {order.shippingAddress?.street && (
+                  {order.shipping_street && (
                     <>
                       <Separator />
                       <div className="text-xs text-muted-foreground flex items-start gap-2">
                         <MapPin size={12} className="mt-0.5 shrink-0" />
                         <span>
-                          {order.shippingAddress.street}, {order.shippingAddress.suburb}, {order.shippingAddress.city}, {order.shippingAddress.province} {order.shippingAddress.postalCode}
+                          {order.shipping_street}, {order.shipping_suburb}, {order.shipping_city}, {order.shipping_province} {order.shipping_postal_code}
                         </span>
                       </div>
                     </>

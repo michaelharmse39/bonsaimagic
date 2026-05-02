@@ -1,19 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from 'next-sanity'
 import { jwtVerify } from 'jose'
 import { hashPassword } from '@/lib/auth'
+import { supabase } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
 
 const secret = () => new TextEncoder().encode(process.env.AUTH_SECRET || 'bm-fallback-secret-change-in-prod')
-
-const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'c1o4kw27',
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  apiVersion: '2024-01-01',
-  token: process.env.SANITY_API_TOKEN,
-  useCdn: false,
-})
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,17 +31,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid verification code' }, { status: 400 })
     }
 
-    const user = await client.fetch(
-      `*[_type == "user" && email == $email][0]{ _id }`,
-      { email }
-    )
+    const { data: user } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .single()
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     const passwordHash = await hashPassword(newPassword)
-    await client.patch(user._id).set({ passwordHash }).commit()
+    await supabase.from('profiles').update({ password_hash: passwordHash }).eq('id', user.id)
 
     return NextResponse.json({ success: true })
   } catch (err) {
